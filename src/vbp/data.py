@@ -20,6 +20,7 @@ def load_matches(path: str | Path, odds_source: str = "pinnacle") -> pd.DataFram
     if missing:
         raise ValueError(f"missing required columns for source {odds_source}: {missing}")
     df = raw[whitelist].copy()
+    df = df.dropna(subset=_odds_cols(odds_source)).reset_index(drop=True)
     df["Date"] = pd.to_datetime(df["Date"], dayfirst=True, errors="raise")
     df = df.sort_values("Date", kind="stable").reset_index(drop=True)
     return df

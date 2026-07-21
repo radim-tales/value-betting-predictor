@@ -7,7 +7,6 @@ from .data import load_matches
 from .backtest import run_backtest
 from .baselines import noise_probs, always_favorite_pick
 from .value_filter import select_bet
-from .devig import devig
 from .metrics import (roi, bootstrap_roi_ci, brier, roi_by_outcome, roi_after_slippage, roi_drop_top)
 from .report import render_report
 
@@ -23,11 +22,12 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     cfg = load_config(args.config)
-    train = _load_split(args.data_dir, cfg.league, cfg.seasons.train + cfg.seasons.validation, cfg.odds_source)
+    train = _load_split(args.data_dir, cfg.league, cfg.seasons.train, cfg.odds_source)
+    warmup = _load_split(args.data_dir, cfg.league, cfg.seasons.validation, cfg.odds_source)
     test = _load_split(args.data_dir, cfg.league, cfg.seasons.locked_test, cfg.odds_source)
 
     result = run_backtest(
-        train_df=train, test_df=test, odds_source=cfg.odds_source, devig_method=cfg.devig,
+        train_df=train, test_df=test, warmup_df=warmup, odds_source=cfg.odds_source, devig_method=cfg.devig,
         anchor_cfg=dict(k=cfg.anchor.k, home_adv=cfg.anchor.home_adv, start_rating=cfg.anchor.start_rating),
         value_cfg=dict(min_edge=cfg.value.min_edge, odds_min=cfg.value.odds_min, odds_max=cfg.value.odds_max),
         skip_first_rounds=cfg.value.skip_first_rounds,

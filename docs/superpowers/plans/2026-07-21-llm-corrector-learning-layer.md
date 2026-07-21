@@ -4,7 +4,7 @@
 
 **Goal:** Postavit učící se LLM vrstvu nad hotový deterministický harness (Plán A): Claude korektor upravuje anchor pravděpodobnosti podle sebe-psaného strukturovaného playbooku, playbook se blokově přepisuje reflexí, a celé se změří proti anchor-only baselinu + ablacím + akceptačním kritériím.
 
-**Architecture:** LLM volání jsou schovaná za injektovatelné rozhraní (`LLMClient`), takže testy jedou na `FakeLLM` s naskriptovanými JSON odpověďmi a **žádná síť/token se v testech neutratí**. Reálný `AnthropicClient` je tenký a ověřuje se manuálně/živě. Deterministické části (aplikace korekcí, playbook lifecycle, agregace bloku, ablace, akceptace) jsou plně TDD testované. Orchestrátor učení znovupoužívá `EloAnchor`, `devig`, `select_bit`, `metrics` a `build_features` z Plánu A. Každé LLM volání se loguje kompletně (prompt hash + raw odpověď) a běh je **přehratelný z uložených odpovědí** (Claude není bitově deterministický).
+**Architecture:** LLM volání jsou schovaná za injektovatelné rozhraní (`LLMClient`), takže testy jedou na `FakeLLM` s naskriptovanými JSON odpověďmi a **žádná síť/token se v testech neutratí**. Reálný `AnthropicClient` je tenký a ověřuje se manuálně/živě. Deterministické části (aplikace korekcí, playbook lifecycle, agregace bloku, ablace, akceptace) jsou plně TDD testované. Orchestrátor učení znovupoužívá `EloAnchor`, `devig`, `select_bet`, `metrics`, `build_features` a `anonymize_teams` z Plánu A. Každé LLM volání se loguje kompletně (prompt hash + raw odpověď) a běh je **přehratelný z uložených odpovědí** (Claude není bitově deterministický).
 
 **Tech Stack:** Python 3.11+, `anthropic` SDK (Claude), pydantic (structured output validace), + vše z Plánu A (pandas, numpy, scipy, scikit-learn). Modely: korekce = **Haiku 4.5** (`claude-haiku-4-5`, přijímá temperature, structured output), reflexe = **Sonnet 5** (`claude-sonnet-5`, adaptivní thinking, **temperature NELZE** - 400, řídí se promptem/effort).
 
@@ -297,6 +297,19 @@ def test_fake_llm_logs_calls():
     fake.correct(prompt="P1")
     fake.reflect(prompt="P2")
     assert [c["kind"] for c in fake.calls] == ["correct", "reflect"]
+
+def test_replay_llm_reproduces_from_log_by_prompt_hash():
+    import hashlib
+    from vbp.llm.client import ReplayLLM
+    log = [
+        {"kind": "correct", "prompt_sha": hashlib.sha256(b"CP").hexdigest(),
+         "corrections": {"corrections": [{"match_id": "0", "dH": 0.02, "dD": -0.01, "dA": -0.01}]}},
+        {"kind": "reflect", "prompt_sha": hashlib.sha256(b"RP").hexdigest(), "text": "## Priors\n- r\n"},
+    ]
+    r = ReplayLLM(log)
+    b = r.correct("CP")
+    assert b.corrections[0].dH == 0.02
+    assert r.reflect("RP") == "## Priors\n- r\n"
 ```
 
 - [ ] **Step 2: Run → FAIL. Step 3: Implement**
@@ -338,6 +351,7 @@ class AnthropicClient:
         self.log = log  # callable(dict) for audit, optional
 
     def correct(self, prompt: str) -> CorrectionBatch:
+        import hashlib
         resp = self._client.messages.parse(
             model=self.correct_model, max_tokens=4000,
             temperature=self.temp_correct,          # OK on Haiku 4.5
@@ -346,10 +360,13 @@ class AnthropicClient:
         )
         if self.log:
             self.log({"kind": "correct", "model": self.correct_model,
-                      "request_id": resp._request_id, "raw": resp.to_dict()})
+                      "prompt_sha": hashlib.sha256(prompt.encode()).hexdigest(),
+                      "request_id": resp._request_id, "raw": resp.to_dict(),
+                      "corrections": resp.parsed_output.model_dump()})   # for replay
         return resp.parsed_output
 
     def reflect(self, prompt: str) -> str:
+        import hashlib
         resp = self._client.messages.create(
             model=self.reflect_model, max_tokens=4000,
             output_config={"effort": "medium"},     # NO temperature on Sonnet 5
@@ -359,11 +376,36 @@ class AnthropicClient:
         text = next((b.text for b in resp.content if b.type == "text"), "")
         if self.log:
             self.log({"kind": "reflect", "model": self.reflect_model,
-                      "request_id": resp._request_id, "raw": resp.to_dict()})
+                      "prompt_sha": hashlib.sha256(prompt.encode()).hexdigest(),
+                      "request_id": resp._request_id, "raw": resp.to_dict(),
+                      "text": text})                                     # for replay
         return text
+
+class ReplayLLM:
+    """Deterministic replay from an audit log (list of dicts written by AnthropicClient.log).
+    Matches each incoming prompt by sha256 to the logged response - so --replay reproduces a
+    run bit-for-bit without calling Anthropic. Falls back to call-order if a hash is missing."""
+    def __init__(self, log_entries: list[dict]):
+        import hashlib
+        self._hashlib = hashlib
+        self._by_sha = {e["prompt_sha"]: e for e in log_entries if "prompt_sha" in e}
+        self._corr_order = [e for e in log_entries if e["kind"] == "correct"]
+        self._refl_order = [e for e in log_entries if e["kind"] == "reflect"]
+        self._ci = self._ri = 0
+    def _lookup(self, prompt, order, idx_attr):
+        sha = self._hashlib.sha256(prompt.encode()).hexdigest()
+        if sha in self._by_sha:
+            return self._by_sha[sha]
+        i = getattr(self, idx_attr)
+        setattr(self, idx_attr, i + 1)
+        return order[i]
+    def correct(self, prompt: str) -> CorrectionBatch:
+        return CorrectionBatch(**self._lookup(prompt, self._corr_order, "_ci")["corrections"])
+    def reflect(self, prompt: str) -> str:
+        return self._lookup(prompt, self._refl_order, "_ri")["text"]
 ```
 
-- [ ] **Step 4: Run → PASS (2 tests, FakeLLM only). Step 5: Commit** `feat: LLMClient protocol + FakeLLM + AnthropicClient (Haiku correct / Sonnet reflect)`
+- [ ] **Step 4: Run → PASS (3 tests, FakeLLM + ReplayLLM only). Step 5: Commit** `feat: LLMClient protocol + FakeLLM + ReplayLLM + AnthropicClient (Haiku correct / Sonnet reflect)`
 
 ---
 
@@ -524,6 +566,19 @@ def run_learning(train_df, test_df, warmup_df, llm, seed_playbook,
     block_preds, block_out, block_bets, block_skipped = [], [], [], 0
     rounds_since_block = 0
 
+    # Pre-match features for every test match, computed leak-safe (build_features uses
+    # only strictly-earlier matches). Concat all history so a test match sees train+warmup+
+    # earlier-test form. Index by (Date, HomeTeam, AwayTeam).
+    import pandas as pd
+    hist = pd.concat([df for df in (train_df, warmup_df, test_df) if df is not None], ignore_index=True)
+    feats = build_features(hist)                       # from Plán A
+    feat_by_key = {(r["Date"], r["HomeTeam"], r["AwayTeam"]):
+                   {c: r[c] for c in feats.columns if c not in ("Date", "HomeTeam", "AwayTeam")}
+                   for _, r in feats.iterrows()}
+    # One consistent anonymization mapping over ALL teams (prompt-only; never leaks real names).
+    all_teams = list(hist["HomeTeam"]) + list(hist["AwayTeam"])
+    _, anon = anonymize_teams(all_teams)               # from Plán A: {real: "Team_N"}
+
     # group test matches into rounds by date (a "round" = matches sharing a date)
     test = test_df.reset_index(drop=True)
     for round_idx, (date, group) in enumerate(test.groupby("Date", sort=True)):
@@ -534,10 +589,13 @@ def run_learning(train_df, test_df, warmup_df, llm, seed_playbook,
         for j, m in enumerate(round_matches):
             delta = anchor.delta(m["HomeTeam"], m["AwayTeam"])
             anchor_p = anchor.predict_proba(delta)
-            packet.append({"match_id": f"{round_idx}:{j}", "home": m["HomeTeam"],
-                           "away": m["AwayTeam"], "anchor_p": anchor_p})
-        # anonymize team names for the prompt only
-        # (packet carries anchor_p; corrector returns deltas keyed by match_id)
+            key = (m["Date"], m["HomeTeam"], m["AwayTeam"])
+            packet.append({"match_id": f"{round_idx}:{j}",
+                           "home": anon[m["HomeTeam"]], "away": anon[m["AwayTeam"]],  # anonymized
+                           "anchor_p": anchor_p,
+                           "features": feat_by_key.get(key, {})})                    # pre-match, no odds
+        # packet carries anonymized names + features + anchor_p (NO odds); corrector
+        # returns deltas keyed by match_id. build_correction_prompt must not add odds.
         corr_prompt = build_correction_prompt(packet, playbook.serialize())
         batch = llm.correct(corr_prompt) if round_idx >= skip_first_rounds else None
         deltas = {c.match_id: c for c in (batch.corrections if batch else [])}
@@ -643,7 +701,7 @@ def test_fails_when_clv_not_beating_noise():
 
 ### Task 9: CLI `vbp-learn` + report
 
-Entrypoint: načte config + data (jako Plán A CLI), postaví `AnthropicClient` s audit logem, spustí `run_ablations` na locked-test, spočítá `evaluate_acceptance`, uloží report (learned vs baseliny vs ablace + verdikt), audit log LLM volání, finální playbook a snapshoty do `runs/learn_<ts>/`. Podporuje `--dry-run` (použije FakeLLM s prázdnými korekcemi = jen anchor, bez nákladů) a `--replay <dir>` (přehraje z uložených odpovědí). Vypíše řádový odhad nákladů před spuštěním živého běhu.
+Entrypoint: načte config + data (jako Plán A CLI), postaví `AnthropicClient` s audit logem (`log` callback zapisuje řádky do `runs/learn_<ts>/llm_log.jsonl`), spustí `run_ablations` na locked-test, spočítá `evaluate_acceptance`, uloží report (learned vs baseliny vs ablace + verdikt), audit log LLM volání, finální playbook a snapshoty do `runs/learn_<ts>/`. Podporuje `--dry-run` (použije `FakeLLM` s prázdnými korekcemi = jen anchor, bez nákladů) a `--replay <dir>` (načte `llm_log.jsonl`, postaví `ReplayLLM` a přehraje bez volání Anthropic - musí dát identický výsledek). Vypíše řádový odhad nákladů před spuštěním živého běhu.
 
 **Files:** Create `src/vbp/learn_cli.py`, `tests/test_learn_report.py` (jen render report); Modify: `pyproject.toml` (přidat `vbp-learn` entrypoint)
 

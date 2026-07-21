@@ -27,14 +27,17 @@ def run_backtest(train_df, test_df, odds_source, devig_method,
 
     audit, bets = [], []
     test_matches = test_df.reset_index(drop=True).to_dict("records")
+    # a "round" = matches sharing a Date, mirroring run_learning's groupby("Date")
+    round_of = {d: r for r, d in enumerate(sorted(test_df["Date"].unique()))}
     for i, m in enumerate(test_matches):
+        round_idx = round_of[m["Date"]]
         delta = anchor.delta(m["HomeTeam"], m["AwayTeam"])
         p_model = anchor.predict_proba(delta)
         open_odds, close_odds = _odds_dicts(m, odds_source)
         fair_open = dict(zip(("H", "D", "A"), devig([open_odds["H"], open_odds["D"], open_odds["A"]], devig_method)))
         fair_close = dict(zip(("H", "D", "A"), devig([close_odds["H"], close_odds["D"], close_odds["A"]], devig_method)))
         bet = None
-        if i >= skip_first_rounds:
+        if round_idx >= skip_first_rounds:
             bet = select_bet(p_model, fair_open, open_odds, **value_cfg)
         row = {"i": i, "home": m["HomeTeam"], "away": m["AwayTeam"], "delta": delta,
                "anchor_p": p_model, "fair_open": fair_open,

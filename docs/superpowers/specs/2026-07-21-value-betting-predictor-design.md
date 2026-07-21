@@ -77,6 +77,8 @@ Deterministický statistický model, který z pre-match faktů (**bez trhu**) vy
 2. Je sám o sobě **silným baselinem** k poražení.
 3. Drží kurz mimo predikční prompt.
 
+**Leak i pro anchor:** pokud je anchor učený model (regrese), fituje se **jen na train / walk-forward dopředu**, nikdy na validaci ani locked test - jinak anchor sám protáhne budoucnost do každé predikce i do každého baselinu. Elo je walk-forward bezpečné z principu.
+
 ### 4.3 Prediktor / korektor (LLM — jádro, jediná kreativní role)
 
 Jeden agent, jeden sdílený playbook, dva režimy:
@@ -170,13 +172,13 @@ na konci bloku:  agregovaný report ─▶ LLM: reflektuj ─▶ playbook(t+1)
 
 - Tržní implikované pravděpodobnosti (kalibrace / log-loss benchmark).
 - **Anchor model samotný** (bez LLM).
-- Silný deterministický model (logistická regrese / Elo / Dixon-Coles).
+- Silný deterministický model **odlišný od anchoru** (když anchor = Elo, tak baseline = Dixon-Coles apod.; ať nejsou totožné).
 - **Noise baseline:** tržní P + gaussovský šum přes value filtr - když se agent neliší od šumu, nemá edge.
 - Naivní: vždy favorit, vždy domácí.
 
 **Ablace playbooku (důkaz, že učení přes text něco dělá):** naučený playbook vs prázdný vs zamrzlý seed vs statický ručně psaný vs **bez reflexe** (statický LLM). Teprve když naučený porazí tyto kontroly na locked testu, dá se mluvit o učení.
 
-**Akceptační kritéria (předem daná, ať se výsledek nedopoví zpětně):** např. na locked testu ROI > 0 i po 1% slippage, bootstrap CI ne extrémně široké, Brier/log-loss lepší než tržní baseline, a min. počet sázek (např. ≥100). Konkrétní hodnoty se zafixují v plánu.
+**Akceptační kritéria (předem daná, ať se výsledek nedopoví zpětně):** např. na locked testu **kladné CLV** (primární), ROI > 0 i po 1% slippage, bootstrap CI ne extrémně široké, Brier/log-loss lepší než tržní baseline, a min. počet sázek (např. ≥100). Konkrétní hodnoty se zafixují v plánu.
 
 ## 7. Vyhodnocení
 

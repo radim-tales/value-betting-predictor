@@ -27,3 +27,14 @@ def test_brier_perfect_prediction_is_zero():
 
 def test_slippage_reduces_odds():
     assert abs(apply_slippage(2.00, 0.01) - 1.98) < 1e-9
+
+def test_bootstrap_mean_ci_brackets_mean():
+    import numpy as np
+    from vbp.metrics import bootstrap_mean_ci
+    vals = [0.02]*60 + [-0.05]*40      # mean = -0.008
+    lo, hi = bootstrap_mean_ci(vals, n_boot=500, alpha=0.10, seed=42)
+    assert lo < float(np.mean(vals)) < hi
+
+def test_bootstrap_mean_ci_empty_is_zero():
+    from vbp.metrics import bootstrap_mean_ci
+    assert bootstrap_mean_ci([], n_boot=100) == (0.0, 0.0)

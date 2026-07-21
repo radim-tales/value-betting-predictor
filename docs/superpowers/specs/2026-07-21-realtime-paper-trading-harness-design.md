@@ -14,7 +14,7 @@ Toto je **validační nástroj**, ne obchodní systém. Bankroll/Kelly/doporučo
 
 ## 2. Co znamená úspěch
 
-Primární metrika = **běžící mean CLV s bootstrap konfidenčním intervalem**, rozdělená podle:
+Primární metrika = **běžící mean CLV s bootstrap konfidenčním intervalem** (bootstrap přes seznam per-sázka CLV hodnot - obecný mean-bootstrap, ne ROI; `vbp.metrics.bootstrap_roi_ci` bootstrapuje ROI, takže na CLV potřebujeme malý generický helper `bootstrap_mean_ci(values)`, buď nový v `vbp.metrics`, nebo v `report`), rozdělená podle:
 
 - **typu knihy:** sharp / soft-bookmaker / burza (exchange),
 - **ligy:** likvidní / zanedbaná.
@@ -33,9 +33,9 @@ Jeden běh má tři odpovědnosti:
 
 1. **Poll** - stáhne kurzy sledovaných lig (1 likvidní + 1 zanedbaná), přes `vbp.devig` spočítá Pinnacle-fair pravděpodobnost (pravda), najde nejlepší cenu napříč všemi knihami, zaloguje **nové** value sázky (dedup) s tagem typu knihy.
 2. **Snapshot open/close** - u každého zápasu drží první viděnou Pinnacle linii (open) a průběžně přepisuje poslední před výkopem (close = proxy pro CLV; free tier neumožňuje přesné -5 min).
-3. **Settle** - pro doběhlé zápasy stáhne výsledek (`/scores` endpoint The Odds API), označí won/lost, spočítá ROI a CLV.
+3. **Settle** - pro doběhlé zápasy stáhne výsledek (`/scores` endpoint The Odds API) a zapíše `result` + `settled` do `lines.json`. **Per-sázka won/CLV/ROI se tu NEpočítá ani neukládá** - odvozuje je až `report` joinem `bets.jsonl` × `lines.json` (viz §5), aby `bets.jsonl` zůstal neměnný append-only log.
 
-Kvůli free tieru The Odds API (~16 kreditů/den) je polling řídký: 2 ligy × 3×/den = 6 kreditů/den, s rezervou. Hustší polling / víc lig / přesnější close = placený tier, až kdyby v1 potvrdil edge.
+Kvůli free tieru The Odds API (~16 kreditů/den) je polling řídký: 2 ligy × 3×/den = 6 kreditů/den (odds volání). `fetch_scores` je další ~1 kredit/liga/běh → celkem ~12 kreditů/den, pořád ve free tieru s rezervou (přesnou cenu scores endpointu ověřit v plánu). Hustší polling / víc lig / přesnější close = placený tier, až kdyby v1 potvrdil edge.
 
 ## 4. Komponenty (jednotky s jednou odpovědností)
 
@@ -43,8 +43,8 @@ Kvůli free tieru The Odds API (~16 kreditů/den) je polling řídký: 2 ligy ×
 - **`adapter`** - transformace API eventu na `{book: {"H","D","A"}}` + klasifikace typu knihy (sharp/soft/exchange) přes pevný číselník book keys. Osekané semínko = `realtime_poc.py`.
 - **`value`** - detekce value: `devig(Pinnacle)` = pravda, nejlepší cena napříč knihami, EV ≥ práh (default edge 3 %, kurz 1.6-8.0). Vrací value kandidáty s tagem knihy. Reuse `vbp.devig`.
 - **`store`** - persistence: čtení/zápis `bets.jsonl` a `lines.json`, dedup sázek, update open/close/result. Čistý JSON I/O, žádná logika edge.
-- **`settle`** - párování doběhlých zápasů s výsledky, výpočet won/lost + CLV (přes uložený close proxy) + ROI. Reuse `vbp.metrics`.
-- **`report`** - z logů vypíše mean CLV + bootstrap CI × typ knihy × liga, ROI, objem, pokrytí Pinnacle. Spustitelný i lokálně. Reuse `vbp.metrics` (roi, clv, bootstrap_roi_ci).
+- **`settle`** - "results updater": stáhne výsledky doběhlých zápasů a zapíše `result` + `settled` do `lines.json`. Žádný výpočet per-sázka metrik (to dělá `report`).
+- **`report`** - **joinuje `bets.jsonl` × `lines.json`** (přes `match_id`), odvodí per-sázku `won` (z `result` vs `outcome`) a `clv` (= `pin_close_fair[outcome] * price - 1`, reuse `vbp.metrics.clv`), a pro volání do `vbp.metrics.roi`/`bootstrap_roi_ci` přemapuje tvar (`price`→`odds`, doplní `won`). Vypíše mean CLV + bootstrap CI (přes CLV hodnoty) × typ knihy × liga, ROI + jeho CI, objem, pokrytí Pinnacle. Spustitelný i lokálně. Reuse `vbp.metrics` (clv, roi, bootstrap_roi_ci) + generický `bootstrap_mean_ci` pro CLV CI.
 - **`run`** - orchestruje jeden cron běh: poll → snapshot → settle → commit. Entrypoint pro GitHub Actions.
 
 ## 5. Datový model (JSON v repu, adresář `runs/live/`)
@@ -54,7 +54,9 @@ Kvůli free tieru The Odds API (~16 kreditů/den) je polling řídký: 2 ligy ×
 - **`lines.json`** - dict keyed by `match_id`, per zápas:
   `{league, home, away, kickoff, pin_open: {H,D,A}, pin_close: {H,D,A}, result, settled}`
 
-Report se generuje výhradně z těchto dvou souborů. `book_type ∈ {sharp, soft, exchange}` dle pevného číselníku (Pinnacle=sharp; B365/BW/WH/... = soft; Betfair/Matchbook/... = exchange).
+**Dělba odpovědnosti:** `bets.jsonl` je **neměnný append-only** log toho, co bylo detekováno (nikdy se nepřepisuje). `lines.json` drží proměnlivý stav zápasu (open/close/result/settled). **Per-sázka `won`/`clv`/`roi` se NIKDE neukládá** - `report` je počítá za běhu joinem obou souborů přes `match_id`. Tím je settle čistě "zapiš výsledek do lines.json" a report čistě "join + spočítej metriky".
+
+`book_type ∈ {sharp, soft, exchange}` dle pevného číselníku (Pinnacle=sharp; B365/BW/WH/... = soft; Betfair/Matchbook/... = exchange).
 
 ## 6. Data flow (jeden cron běh)
 
@@ -68,8 +70,9 @@ pro každou sledovanou ligu:
             pro každý value kandidát z value.find(books):
                 store.add_bet(...) pokud ještě není (dedup na match_id+outcome+book)
 scores = odds_client.fetch_scores(sport)               # doběhlé zápasy
-settle.settle_finished(store, scores)                  # result -> won/lost, CLV, ROI
+settle.settle_finished(store, scores)                  # zapíše result + settled do lines.json
 commit JSON logů zpět do repa
+# per-sázka won/CLV/ROI počítá až report joinem bets.jsonl × lines.json
 ```
 
 Open vs close: pokud `now < kickoff - buffer`, aktualizuj `pin_open` jen když ještě není; vždy přepiš `pin_close` na aktuální (poslední před výkopem se stane finálním close). CLV = `pin_close_fair[outcome] * bet_price - 1`.
@@ -83,7 +86,7 @@ Open vs close: pokud `now < kickoff - buffer`, aktualizuj `pin_open` jen když j
 
 - **Python 3.11+**, běží na GitHub Actions (cron workflow).
 - **The Odds API** (free tier, klíč přes GitHub Actions secret `ODDS_API_KEY`).
-- **Reuse z vbp:** `devig` (Shin), `metrics` (roi, clv, bootstrap_roi_ci). Realtime cesta potřebuje jen **numpy + scipy + requests** (ne pandas/sklearn) - lehká.
+- **Reuse z vbp:** `devig` (Shin); `metrics.clv` (per-sázka CLV), `metrics.roi` + `metrics.bootstrap_roi_ci` (pro ROI a jeho CI - pozor, `report` musí přemapovat tvar sázky `price`→`odds` a doplnit `won` z výsledku). **Nový malý helper `bootstrap_mean_ci(values)`** pro bootstrap CI přes CLV hodnoty (buď do `vbp.metrics`, nebo lokálně v `report`) - `bootstrap_roi_ci` na to nestačí (bootstrapuje ROI). Realtime cesta potřebuje jen **numpy + scipy + requests** (ne pandas/sklearn) - lehká.
 - **Testy** jedou na **uložených fixture JSON odpovědích API** (žádná síť ani kredit v testech), stejný princip jako FakeLLM v Plánu B. Pokrývají: adapter (transformace + klasifikace knih), value (detekce + práh), store (dedup, open/close update), settle (won/lost, CLV), report (render metrik).
 
 ## 9. YAGNI (záměrně mimo v1)

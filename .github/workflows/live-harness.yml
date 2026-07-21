@@ -1,0 +1,35 @@
+name: live-harness
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+    - cron: "0 14 * * *"
+    - cron: "0 20 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install minimal deps
+        run: |
+          pip install numpy scipy requests
+          pip install -e . --no-deps
+      - name: Run harness
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: python -m vbp.live.run
+      - name: Commit state
+        run: |
+          git config user.name "live-harness"
+          git config user.email "bot@users.noreply.github.com"
+          git add live_state/
+          git diff --cached --quiet || git commit -m "live: update state $(date -u +%FT%TZ)"
+          git push

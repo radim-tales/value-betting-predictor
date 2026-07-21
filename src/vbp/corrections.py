@@ -34,6 +34,15 @@ def _clip_and_renormalize(raw: dict, clip_lo: float, clip_hi: float) -> dict:
         violators = {o: v for o, v in candidates.items() if v < clip_lo or v > clip_hi}
         if not violators:
             fixed.update(candidates)
+            # Degenerate case: all coordinates got pinned to a clip bound in a
+            # single pass (possible with custom clip_lo/clip_hi that don't
+            # satisfy 2*clip_lo + clip_hi == 1), so `free` emptied out without
+            # ever redistributing remaining mass. Guarantee sum-to-one via a
+            # final proportional renormalization, even if that means slightly
+            # violating a clip bound in this pathological case.
+            total = sum(fixed.values())
+            if not free and abs(total - 1.0) > 1e-9 and total:
+                fixed = {o: v / total for o, v in fixed.items()}
             return fixed
         for o, v in violators.items():
             fixed[o] = clip_lo if v < clip_lo else clip_hi

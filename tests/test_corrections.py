@@ -24,3 +24,18 @@ def test_clips_and_renormalizes():
     assert not skipped
     assert p["A"] >= 0.01
     assert abs(sum(p.values()) - 1.0) < 1e-9
+
+
+def test_output_always_sums_to_one_even_with_custom_bounds():
+    # With custom bounds (clip_lo=0.05, clip_hi=0.80) that don't satisfy
+    # 2*clip_lo + clip_hi == 1, a single projection pass can pin all three
+    # coordinates at their clip bounds simultaneously, leaving the naive
+    # result summing to 0.9 instead of 1.0. The safety-net renormalization
+    # must restore the sum-to-one invariant.
+    p, skipped = apply_correction(
+        {"H": 0.85, "D": 0.10, "A": 0.05},
+        {"dH": 0.14, "dD": -0.095, "dA": -0.045},
+        clip_lo=0.05, clip_hi=0.80,
+    )
+    assert not skipped
+    assert abs(sum(p.values()) - 1.0) < 1e-9

@@ -26,6 +26,18 @@ def test_clips_and_renormalizes():
     assert abs(sum(p.values()) - 1.0) < 1e-9
 
 
+def test_default_zero_sum_tol_is_point_zero_eight():
+    # spec §10 locks the default skip tolerance at 0.08: a delta summing to
+    # +0.05 must NOT be skipped, but +0.10 must be skipped, under the default.
+    p, skipped = apply_correction(ANCHOR, {"dH": 0.05, "dD": 0.0, "dA": 0.0})
+    assert not skipped
+    assert abs(sum(p.values()) - 1.0) < 1e-9
+
+    p2, skipped2 = apply_correction(ANCHOR, {"dH": 0.10, "dD": 0.0, "dA": 0.0})
+    assert skipped2
+    assert p2 == ANCHOR
+
+
 def test_output_always_sums_to_one_even_with_custom_bounds():
     # With custom bounds (clip_lo=0.05, clip_hi=0.80) that don't satisfy
     # 2*clip_lo + clip_hi == 1, a single projection pass can pin all three

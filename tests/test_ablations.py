@@ -79,7 +79,9 @@ def test_llm_factory_gives_fresh_client_per_variant():
     kw["llm_factory"] = factory
     run_ablations(**kw)
 
-    # 4 LLM-driven variants: learned, empty, frozen, no_reflection
-    assert len(calls) == 4
+    # 3 live LLM-driven runs: learned, empty, and the shared frozen/no_reflection
+    # variant (computed once and aliased to both keys - identical config would
+    # otherwise double live LLM spend for no behavioral difference).
+    assert len(calls) == 3
     # each got its own instance
-    assert len(set(id(c) for c in calls)) == 4
+    assert len(set(id(c) for c in calls)) == 3

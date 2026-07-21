@@ -34,6 +34,37 @@ def test_learning_runs_and_updates_playbook():
     assert "final_playbook" in result and result["final_playbook"]
 
 
+class _AlwaysFailsLLM:
+    """Stub whose correct/reflect always raise - exercises the retry-then-fallback
+    path in run_learning without needing a real network call."""
+    def correct(self, prompt):
+        raise RuntimeError("boom: correct")
+
+    def reflect(self, prompt):
+        raise RuntimeError("boom: reflect")
+
+
+def test_learning_survives_llm_failure():
+    df = load_matches(FIX, odds_source="pinnacle")
+    result = run_learning(
+        train_df=df.iloc[:2], test_df=df.iloc[2:], warmup_df=None,
+        llm=_AlwaysFailsLLM(), seed_playbook="## Priors\n- start\n",
+        odds_source="pinnacle", devig_method="shin",
+        anchor_cfg=dict(k=20, home_adv=70, start_rating=1500),
+        value_cfg=dict(min_edge=0.0, odds_min=1.0, odds_max=99.0),
+        skip_first_rounds=0, block_every_rounds=1, block_min_bets=0,
+        playbook_limits=dict(max_chars=10000, max_rules=12),
+    )
+    # run completes and produces audit rows despite every LLM call failing
+    assert len(result["audit"]) == len(df.iloc[2:])
+    # correct() always fails -> no corrections applied -> corrected_p == anchor_p
+    for r in result["audit"]:
+        assert r["corrected_p"] == r["anchor_p"]
+    # reflect() always fails -> playbook rewrite skipped, seed playbook kept
+    from vbp.playbook import Playbook
+    assert result["final_playbook"] == Playbook.parse("## Priors\n- start\n").serialize()
+
+
 def test_learning_deterministic_given_fake():
     df = load_matches(FIX, odds_source="pinnacle")
     kw = dict(train_df=df.iloc[:2], test_df=df.iloc[2:], warmup_df=None,

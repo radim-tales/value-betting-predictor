@@ -48,11 +48,17 @@ def run_ablations(train_df, test_df, warmup_df, llm_factory, seed_playbook, odds
                   value_cfg=value_cfg, skip_first_rounds=skip_first_rounds,
                   block_min_bets=block_min_bets, playbook_limits=playbook_limits)
 
+    # "frozen" and "no_reflection" are the same variant: seed playbook, reflection
+    # disabled (block_every_rounds forced huge). Compute it once and alias both keys
+    # to avoid a duplicate live-LLM run with identical config and results.
+    no_reflection_summary = _learning_variant(
+        llm_factory(), seed_playbook, _NO_REFLECTION_ROUNDS, **common)
+
     results = {
         "learned": _learning_variant(llm_factory(), seed_playbook, block_every_rounds, **common),
         "empty": _learning_variant(llm_factory(), empty_playbook, _NO_REFLECTION_ROUNDS, **common),
-        "frozen": _learning_variant(llm_factory(), seed_playbook, _NO_REFLECTION_ROUNDS, **common),
-        "no_reflection": _learning_variant(llm_factory(), seed_playbook, _NO_REFLECTION_ROUNDS, **common),
+        "frozen": dict(no_reflection_summary),
+        "no_reflection": dict(no_reflection_summary),
     }
 
     # Deterministic baselines (Plan A).

@@ -31,12 +31,13 @@ class AnthropicClient:
     Correction = Haiku 4.5 (accepts temperature, structured output, NO effort/thinking).
     Reflection = Sonnet 5 (adaptive thinking, NO temperature - it 400s)."""
     def __init__(self, correct_model="claude-haiku-4-5", reflect_model="claude-sonnet-5",
-                 temp_correct=0.0, log=None):
+                 temp_correct=0.0, reflect_effort="medium", log=None):
         import anthropic
         self._client = anthropic.Anthropic()
         self.correct_model = correct_model
         self.reflect_model = reflect_model
         self.temp_correct = temp_correct
+        self.reflect_effort = reflect_effort
         self.log = log  # callable(dict) for audit, optional
 
     def correct(self, prompt: str) -> CorrectionBatch:
@@ -58,7 +59,7 @@ class AnthropicClient:
         import hashlib
         resp = self._client.messages.create(
             model=self.reflect_model, max_tokens=4000,
-            output_config={"effort": "medium"},     # NO temperature on Sonnet 5
+            output_config={"effort": self.reflect_effort},  # NO temperature on Sonnet 5
             thinking={"type": "adaptive"},
             messages=[{"role": "user", "content": prompt}],
         )

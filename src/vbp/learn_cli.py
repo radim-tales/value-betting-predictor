@@ -75,6 +75,7 @@ def main(argv=None):
             correct_model=cfg.llm.correct_model,
             reflect_model=cfg.llm.reflect_model,
             temp_correct=cfg.llm.temp_correct,
+            reflect_effort=cfg.llm.reflect_effort,
             log=log_append,
         )
 

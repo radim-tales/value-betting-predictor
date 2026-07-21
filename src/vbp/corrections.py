@@ -2,11 +2,12 @@ from __future__ import annotations
 
 
 def apply_correction(anchor_p: dict, delta: dict,
-                     zero_sum_tol: float = 0.02,
+                     zero_sum_tol: float = 0.08,
                      clip_lo: float = 0.01, clip_hi: float = 0.98) -> tuple[dict, bool]:
     """Apply LLM delta to anchor probs. Returns (probs, skipped).
     Skip (return anchor unchanged) if deltas are not ~zero-sum (a broken/incoherent
-    correction) - per spec §10 we do NOT silently normalize large errors."""
+    correction) - per spec §10 we do NOT silently normalize large errors. Default
+    tolerance is locked at 0.08 per spec §10."""
     d = {o: float(delta.get(f"d{o}", 0.0)) for o in ("H", "D", "A")}
     if abs(sum(d.values())) > zero_sum_tol:
         return dict(anchor_p), True

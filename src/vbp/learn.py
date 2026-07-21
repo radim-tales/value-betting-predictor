@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 import pandas as pd
 
 from .anchor import EloAnchor
@@ -14,10 +16,27 @@ from .playbook import Playbook
 from .prompt import build_correction_prompt, build_reflection_prompt
 from .value_filter import select_bet
 
+logger = logging.getLogger(__name__)
+
 
 def _devig_dict(odds: dict, method: str) -> dict:
     fair = devig([odds["H"], odds["D"], odds["A"]], method)
     return dict(zip(("H", "D", "A"), fair))
+
+
+def _call_with_retry(fn, *args, label: str = ""):
+    """Call fn(*args); on any exception retry once. If it still fails, log a
+    warning and return None so the caller can fall back gracefully instead of
+    aborting the whole learning run over one bad LLM call."""
+    try:
+        return fn(*args)
+    except Exception:
+        try:
+            return fn(*args)
+        except Exception:
+            logger.warning("LLM call failed twice, falling back%s",
+                           f" ({label})" if label else "", exc_info=True)
+            return None
 
 
 def run_learning(train_df, test_df, warmup_df, llm, seed_playbook,
@@ -65,7 +84,8 @@ def run_learning(train_df, test_df, warmup_df, llm, seed_playbook,
         # packet carries anonymized names + features + anchor_p (NO odds); corrector
         # returns deltas keyed by match_id. build_correction_prompt must not add odds.
         corr_prompt = build_correction_prompt(packet, playbook.serialize())
-        batch = llm.correct(corr_prompt) if round_idx >= skip_first_rounds else None
+        batch = (_call_with_retry(llm.correct, corr_prompt, label="correct")
+                 if round_idx >= skip_first_rounds else None)
         deltas = {c.match_id: c for c in (batch.corrections if batch else [])}
 
         for j, m in enumerate(round_matches):
@@ -95,8 +115,10 @@ def run_learning(train_df, test_df, warmup_df, llm, seed_playbook,
         rounds_since_block += 1
         if rounds_since_block >= block_every_rounds and len(block_bets) >= block_min_bets:
             report = aggregate_block(block_preds, block_out, block_bets, block_skipped)
-            new_text = llm.reflect(build_reflection_prompt(report, playbook.serialize()))
-            if new_text.strip():
+            new_text = _call_with_retry(
+                llm.reflect, build_reflection_prompt(report, playbook.serialize()),
+                label="reflect")
+            if new_text and new_text.strip():
                 playbook = Playbook.parse(new_text)
                 playbook.enforce_limits(**playbook_limits)
             snapshots.append(playbook.serialize())

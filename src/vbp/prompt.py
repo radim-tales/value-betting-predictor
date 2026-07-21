@@ -48,11 +48,12 @@ def build_correction_prompt(matches: list[dict], playbook_text: str) -> str:
 
     parts.append(
         "\n# Output format\n"
-        "Return a single JSON object keyed by match_id. Each value must be "
-        "an object with keys dH, dD, dA (floats) and rationale (string). "
-        "Example:\n"
-        '{"<match_id>": {"dH": 0.02, "dD": -0.01, "dA": -0.01, '
-        '"rationale": "..."}}\n'
+        "Return a single JSON object with one key, \"corrections\", whose "
+        "value is a list with one entry per match. Each entry must be an "
+        "object with keys match_id, dH, dD, dA (floats) and rationale "
+        "(string). Example:\n"
+        '{"corrections": [{"match_id": "<match_id>", "dH": 0.02, '
+        '"dD": -0.01, "dA": -0.01, "rationale": "..."}]}\n'
         "Return JSON only, no surrounding prose.\n"
     )
 

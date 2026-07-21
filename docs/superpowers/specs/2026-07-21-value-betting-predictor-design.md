@@ -1,7 +1,7 @@
 # Value-betting predictor s učícím se playbookem
 
 **Datum:** 2026-07-21
-**Stav:** Návrh odsouhlasen (po oponentuře 3 externích modelů), připraven k implementačnímu plánu
+**Stav:** Návrh odsouhlasen (po 2 kolech oponentury 3 externích modelů), defaulty zamčené (§10), připraven k implementačnímu plánu
 
 ## 1. Cíl
 
@@ -202,13 +202,65 @@ na konci bloku:  agregovaný report ─▶ LLM: reflektuj ─▶ playbook(t+1)
 - **Feature set je retail-level** (forma/tabulka) - proti sharp trhu je to slabé; v1 testuje **mechaniku učení playbooku**, ne že porazí Pinnacle z CSV formy. Explicitně to tak pojmenovat v závěrech.
 - **Náklady LLM** - korekce (N zápasů batchem v jednom promptu) + bloková reflexe výrazně sníží počet volání oproti "2 volání/kolo"; odhad a strop v plánu.
 
-## 10. Otevřené body do implementačního plánu
+## 10. Rozhodnuté defaulty (po oponentuře 3 modelů k sekci 10)
 
-- Konkrétní liga a train/validation/locked-test sezony (musí mít open+close kurzy).
-- Volba anchor modelu (Elo s modelem remíz vs multinomiální/ordinální regrese).
-- Devig metoda (Shin vs power) a fixní zdroj kurzu.
-- Default value práh (laděný na validaci), flat stake, K úvodních kol bez sázek, rozsah povolených kurzů.
-- Délka a max počet pravidel playbooku, přesná cadence bloku, formát promptu (batch JSON schema).
-- Konkrétní model Claude + temperature + odhad nákladů celého běhu (vč. ablací).
-- Konkrétní hodnoty akceptačních kritérií.
-- Jak přesně value filtr naloží s korekcí, po níž P nesečtou na 1 (normalizovat vs odmítnout).
+Zamčeno **před** během. Na validaci se ladí jen to, co je níže označeno "ladí se na val", a i to jedním předem daným gridem. Cokoli jiného po nahlédnutí na locked test = neplatné.
+
+- **Liga:** English Championship (`E1`) - víc zápasů než PL, méně efektivní trh; `E0` je past (nula edge i při dobré mechanice). Fallback při dírách v kurzech: `E0`.
+- **Kurzy:** football-data má otevírací (bez suffixu) i zavírací (`C`) kurzy od sezony **2019/20**. Zdroj = **Pinnacle** (`PSH/PSD/PSA` open na sázku, `PSCH/PSCD/PSCA` close na CLV), fallback market **Avg** (ne Max). Před zamčením ověřit completeness ≥ ~95 % ne-NA řádků. **Nepoužívat 2025/26** (football-data od 23.7.2025 varuje před nespolehlivostí Pinnacle).
+- **Splity:** train `21/22`+`22/23`, validation `23/24`, locked-test `24/25`. COVID sezony (`19/20`,`20/21`) jen jako warm-start Ela, ne do metrik/playbooku.
+- **Anchor:** Elo (start 1500, K=20, home advantage +70; ladí se na train grid 50-80) + mapování `Δ = elo_H − elo_A + H_adv` na (P_H, P_D, P_A) přes softmax/multinomiální regresi **fitnutou jen na train**; remíza = samostatná kalibrovaná třída. Ratingy dopředně, nikdy refit zpět.
+- **Devig:** **Shin** (default), power jen jako sensitivity log; proportional NE. Stejná metoda na open (edge) i close (CLV).
+- **Value filtr:** min edge **3.0 p.b.** (ladí se na val, grid {2, 2.5, 3, 4}); flat stake **1 unit**; kurz **1.60-4.50**; max **1 sázka/zápas** (argmax edge); prvních **4 kola** bez sázek; drop řádků s chybějícím open nebo close.
+- **Playbook:** max **~10 000 znaků / ~3 000 tokenů**, max **12 potvrzených pravidel** (+ max 5 hypotéz, TTL 3 bloky), Notes max 5 bulletů (mazat po 2 blocích). Reflexe po **4 kolech nebo ≥25 vyhodnocených sázkách** (co dřív). Lifecycle: kandidát → potvrzené po **M=2** blocích se `support − oppose ≥ +2`.
+- **JSON korekce:** striktní schema, pole `corrections[{match_id, dH, dD, dA, rationale?}]`; delty v absolutní pravděpodobnosti, **součet delt ≈ 0**, soft cap ±0.10 / hard ±0.15; čísla první, rationale volitelně (max ~200 zn.); batch = celé kolo. Missing/špatné → 1 retry, pak skip zápasu s logem.
+- **Claude modely:** korekce = **Haiku 4.5** (`claude-haiku-4-5-20251001`), temp **0.0**; reflexe = **Sonnet 5** (`claude-sonnet-5`), temp **0.3**; Opus 4.8 jen fallback, když Sonnet dává rozbitý formát. Odhad nákladů (vč. ~5 ablačních běhů) + hard token cap → dořešit v plánu.
+- **P nesečtou na 1:** schema+rozsah validace → 1 retry → skip; pak `P = anchor + delta`, clip `[0.01, 0.98]`, renormalizace; když `|sum(P_raw) − 1| > 0.08` → **skip zápas** (ne spamovat retry). Slepá normalizace velké chyby je past (schová rozbitý výstup, vyrobí falešný edge).
+- **Akceptační kritéria (locked test, zamčená):** primárně **CLV > 0** a zároveň **> empty-playbook i > noise baseline**; ROI > 0 i po 1% slippage; **≥120 sázek** (N < 80 → test neplatný, rozšířit sezony); bootstrap 90% CI dolní mez ROI > −8 p.b.; Brier všech tipů ≤ anchor i ≤ trh; naučený playbook ≥ ablace (frozen/static/no-reflection); P/L po odečtení top-3 výher ROI > −10 %.
+
+### config.yaml (startovní skelet)
+
+```yaml
+league: E1
+seasons:
+  train: ["2122", "2223"]
+  validation: ["2324"]
+  locked_test: ["2425"]
+odds_source: pinnacle      # open na sázku, close na CLV; fallback: avg
+devig: shin                # power jen sensitivity
+anchor:
+  type: elo_softmax_map    # mapování fit train-only
+  k: 20
+  home_adv: 70
+  start_rating: 1500
+value:
+  min_edge: 0.03           # ladí se na val: {0.02, 0.025, 0.03, 0.04}
+  odds_min: 1.60
+  odds_max: 4.50
+  skip_first_rounds: 4
+  stake: 1.0
+  max_bets_per_match: 1
+playbook:
+  max_chars: 10000
+  max_rules: 12
+  max_hypotheses: 5
+  block_every_rounds: 4
+  block_min_bets: 25
+  promote_after_blocks: 2
+llm:
+  correct_model: claude-haiku-4-5-20251001
+  reflect_model: claude-sonnet-5
+  temp_correct: 0.0
+  temp_reflect: 0.3
+corrections:
+  delta_soft_cap: 0.10
+  delta_hard_cap: 0.15
+  zero_sum: true
+prob_postprocess: clip_renorm   # reject/skip jen na schema fail / |sum-1|>0.08
+```
+
+### Zbývá dořešit až v plánu (ne blokuje)
+
+- Completeness check zvolené ligy/sezon (≥95 % open+close) a případný přesun na `E0`.
+- Konkrétní odhad nákladů celého běhu vč. ablací + hard token cap.
+- Přesná formule CLV (jedna, zafixovat) a definice bloku vs "kolo" u Championship rozpisu.

@@ -1,0 +1,36 @@
+league: E1
+seasons:
+  train: ["2122", "2223"]
+  validation: ["2324"]
+  locked_test: ["2425"]
+odds_source: pinnacle      # open na sázku, close na CLV; fallback: avg
+devig: shin                # power jen sensitivity
+anchor:
+  type: elo_softmax_map    # mapování fit train-only
+  k: 20
+  home_adv: 70
+  start_rating: 1500
+value:
+  min_edge: 0.03           # ladí se na val: {0.02, 0.025, 0.03, 0.04}
+  odds_min: 1.60
+  odds_max: 4.50
+  skip_first_rounds: 4
+  stake: 1.0
+  max_bets_per_match: 1
+playbook:
+  max_chars: 10000
+  max_rules: 12
+  max_hypotheses: 5
+  block_every_rounds: 4
+  block_min_bets: 25
+  promote_after_blocks: 2
+llm:
+  correct_model: claude-haiku-4-5-20251001
+  reflect_model: claude-sonnet-5
+  temp_correct: 0.0
+  temp_reflect: 0.3
+corrections:
+  delta_soft_cap: 0.10
+  delta_hard_cap: 0.15
+  zero_sum: true
+prob_postprocess: clip_renorm   # reject/skip jen na schema fail / |sum-1|>0.08

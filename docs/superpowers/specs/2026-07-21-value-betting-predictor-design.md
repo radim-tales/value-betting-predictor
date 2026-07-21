@@ -138,7 +138,8 @@ skutečné výsledky kola ─▶ oracle ─▶ ROI / hit-rate / log ◀┘
 
 ## 9. Otevřené body do implementačního plánu
 
-- Výběr konkrétní ligy a learning/held-out sezon.
+- Výběr konkrétní ligy a learning/held-out sezon. Rozhodnout, zda held-out testuje **jinou sezonu téže ligy** (časový přenos) nebo **jinou ligu** (přenos napříč soutěžemi) — mění to, co výsledek dokazuje.
+- Jak value filtr naloží s odhady pravděpodobností, které nesečtou přesně na 1 (normalizovat vs odmítnout).
 - Default hodnota value prahu a velikost flat stake.
 - Přesná délková hranice playbooku a formát pre-match balíčku předávaného do promptu.
 - Volba konkrétního modelu Claude + odhad nákladů celého běhu.

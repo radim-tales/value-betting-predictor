@@ -334,6 +334,8 @@ git commit -m "feat: data loader with column whitelist (anti-leak)"
 
 Ke každému zápasu postaví pre-match balíček **jen ze zápasů s dřívějším datem** (`date < target_date`; zápasy ze stejného dne se ignorují). Toto je nejdůležitější anti-leak invariant projektu - leak testy jsou povinné.
 
+> **Poznámka ke scope:** `features.py` se staví teď kvůli připravenosti pro Plán B (LLM korektor konzumuje tenhle balíček). Anchor Plánu A je dle zamčeného specu §10 **Elo-only** a `build_features` nevolá - proto se v `backtest.py` nikde nedrátuje. To je záměr, ne opomenutí.
+
 **Files:**
 - Create: `src/vbp/features.py`, `tests/test_features.py`
 
@@ -641,6 +643,18 @@ def test_mapping_not_refit_on_test_ratings_still_advance():
     coef_before = anchor._clf.coef_.copy()
     anchor.update(_matches()[0])             # advancing ratings must NOT touch the mapping
     assert np.array_equal(anchor._clf.coef_, coef_before)
+
+def test_predict_proba_robust_to_missing_class_in_train():
+    """If train split lacks an outcome (e.g. no 'A'), that class must be 0.0, not a crash."""
+    anchor = EloAnchor(k=20, home_adv=70, start_rating=1500)
+    two = [{"HomeTeam": "A", "AwayTeam": "B", "FTR": "H"},
+           {"HomeTeam": "B", "AwayTeam": "A", "FTR": "D"}]   # only H and D
+    diffs = anchor.run_and_collect(two)
+    anchor.fit_mapping(diffs, [m["FTR"] for m in two])
+    p = anchor.predict_proba(delta=50.0)
+    assert set(p.keys()) == {"H", "D", "A"}
+    assert p["A"] == 0.0
+    assert abs(p["H"] + p["D"] + p["A"] - 1.0) < 1e-9
 ```
 
 - [ ] **Step 2: Spusť → FAIL. Step 3: Implementace**
@@ -692,7 +706,9 @@ class EloAnchor:
         if self._clf is None:
             raise RuntimeError("mapping not fit - call fit_mapping on train first")
         probs = self._clf.predict_proba([[delta]])[0]
-        out = {c: float(probs[list(self._clf.classes_).index(c)]) for c in self._classes}
+        cls = list(self._clf.classes_)
+        # robust to a class missing from the training split: absent outcome -> 0.0, then renormalize.
+        out = {c: (float(probs[cls.index(c)]) if c in cls else 0.0) for c in self._classes}
         tot = sum(out.values())
         return {k: v / tot for k, v in out.items()}
 ```
@@ -982,6 +998,7 @@ def test_backtest_runs_and_produces_audit_rows():
     for row in result["audit"]:
         p = row["anchor_p"]
         assert abs(p["H"] + p["D"] + p["A"] - 1.0) < 1e-6    # valid probability
+        assert set(row["open_odds"].keys()) == {"H", "D", "A"}   # raw odds stored for baselines
     # settled bets carry the fields metrics need
     for b in result["bets"]:
         assert {"outcome", "odds", "won", "clv"} <= set(b.keys())
@@ -1031,7 +1048,9 @@ def run_backtest(train_df, test_df, odds_source, devig_method,
         if i >= skip_first_rounds:
             bet = select_bet(p_model, fair_open, open_odds, **value_cfg)
         row = {"i": i, "home": m["HomeTeam"], "away": m["AwayTeam"], "delta": delta,
-               "anchor_p": p_model, "fair_open": fair_open, "result": m["FTR"], "bet": bet}
+               "anchor_p": p_model, "fair_open": fair_open,
+               "open_odds": open_odds, "close_odds": close_odds,   # raw odds for baselines/Plan B
+               "result": m["FTR"], "bet": bet}
         audit.append(row)
         if bet is not None:
             o = bet["outcome"]
@@ -1119,7 +1138,7 @@ from .backtest import run_backtest
 from .baselines import noise_probs, always_favorite_pick
 from .value_filter import select_bet
 from .devig import devig
-from .metrics import (roi, bootstrap_roi_ci, brier, roi_by_outcome, roi_after_slippage)
+from .metrics import (roi, bootstrap_roi_ci, brier, roi_by_outcome, roi_after_slippage, roi_drop_top)
 from .report import render_report
 
 def _load_split(data_dir, league, seasons, source):
@@ -1157,6 +1176,7 @@ def main(argv=None):
         "brier_market": brier(market_preds, all_out),
         "roi_by_outcome": roi_by_outcome(bets),
         "roi_slippage_1pct": roi_after_slippage(bets, 0.01),
+        "roi_drop_top3": roi_drop_top(bets, 3) if bets else 0.0,   # concentration check (Plán B accept. crit.)
         "baselines": _baselines(result["audit"], cfg),
     }
     out = Path(args.out_dir) / pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
@@ -1167,29 +1187,34 @@ def main(argv=None):
     print(f"\nSaved to {out}")
 
 def _baselines(audit, cfg):
-    noise_bets, fav_bets = [], []
     vc = dict(min_edge=cfg.value.min_edge, odds_min=cfg.value.odds_min, odds_max=cfg.value.odds_max)
+    noise_bets = []
     for r in audit:
-        # noise baseline reuses fair_open as market prob source
-        np_ = noise_probs(r["fair_open"], seed=r["i"])
-        nb = select_bet(np_, r["fair_open"], _reconstruct_odds(r), **vc)
+        odds = r["open_odds"]                       # raw odds stored by backtest
+        np_ = noise_probs(r["fair_open"], seed=r["i"])   # noise baseline: market fair + noise
+        nb = select_bet(np_, r["fair_open"], odds, **vc)
         if nb:
             o = nb["outcome"]
-            noise_bets.append({"outcome": o, "odds": _reconstruct_odds(r)[o], "won": r["result"] == o})
+            noise_bets.append({"outcome": o, "odds": odds[o], "won": r["result"] == o})
     return {
         "noise_roi": roi(noise_bets),
         "always_favorite_roi": _favorite_roi(audit),
     }
 
-def _reconstruct_odds(r):
-    # fair_open -> approximate odds back is lossy; store raw odds in audit instead (see note)
-    raise NotImplementedError
+def _favorite_roi(audit):
+    """Always bet the lowest-odds outcome (the market favorite), flat stake."""
+    bets = []
+    for r in audit:
+        odds = r["open_odds"]
+        o = always_favorite_pick(odds)
+        bets.append({"outcome": o, "odds": odds[o], "won": r["result"] == o})
+    return roi(bets)
 
 if __name__ == "__main__":
     main()
 ```
 
-> **Implementační poznámka (důležitá):** `_reconstruct_odds` je záměrně nedokončená - ukazuje chybu v návrhu audit řádku. Uprav `backtest.run_backtest`, aby do každého audit řádku uložil i **raw `open_odds` a `close_odds`** (ne jen `fair_open`). Pak `_baselines` čte skutečné kurzy přímo. Přidej k Tasku 10 test, že audit řádek obsahuje `open_odds`. Toto je jediné místo, kde plán vědomě nechává implementátora dorovnat kontrakt - udělej to jako první krok Tasku 11.
+> **Implementační poznámka:** `_baselines` i `_favorite_roi` čtou raw kurzy z audit řádku (`r["open_odds"]`), které tam ukládá `backtest.run_backtest` (Task 10). Ověř, že Task 10 byl hotový včetně `open_odds`/`close_odds` v audit řádku (test `test_backtest_runs_and_produces_audit_rows` to hlídá), než začneš Task 11 - CLI baseliny na tom závisí.
 
 - [ ] **Step 6: Ruční ověření (potřebuje stažená data)**
 

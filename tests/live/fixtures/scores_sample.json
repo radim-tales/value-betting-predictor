@@ -1,0 +1,5 @@
+[
+  {"id": "m1", "completed": true, "home_team": "Alpha FC", "away_team": "Beta FC",
+   "scores": [{"name": "Alpha FC", "score": "2"}, {"name": "Beta FC", "score": "1"}]},
+  {"id": "m2", "completed": false, "home_team": "Gamma FC", "away_team": "Delta FC", "scores": null}
+]

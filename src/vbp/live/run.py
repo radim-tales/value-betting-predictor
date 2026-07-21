@@ -17,6 +17,7 @@ def run_once(client, leagues, store, regions="eu,uk",
     now = now or datetime.now(timezone.utc)
     for sport, tier in leagues:
         events, quota = client.fetch_odds(sport, regions=regions)
+        print(f"[quota] {sport}: remaining={quota.get('remaining')}")
         for ev in events:
             if now >= _parse(ev["commence_time"]):   # ANTI-LEAK: never snapshot/bet a started match
                 continue
@@ -30,7 +31,7 @@ def run_once(client, leagues, store, regions="eu,uk",
                 store.add_bet({"match_id": ev["id"], "league": sport, "league_tier": tier,
                                "home": ev["home_team"], "away": ev["away_team"],
                                "kickoff": ev["commence_time"], "ts_detected": now.isoformat(), **c})
-        scores, _ = client.fetch_scores(sport)
+        scores, _ = client.fetch_scores(sport, days_from=3)
         settle_finished(store, scores)   # settle is independent of the kickoff gate
 
 def main():

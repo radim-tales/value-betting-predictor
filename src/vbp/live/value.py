@@ -10,7 +10,10 @@ def find_value(books: dict, min_edge: float = 0.03, odds_min: float = 1.6,
     fair = dict(zip("HDA", devig([t["H"], t["D"], t["A"]], "shin")))  # TRUTH
     out = []
     for o in "HDA":
-        price, book = max((books[b][o], b) for b in books)   # best price across books
+        others = [b for b in books if b != truth]
+        if not others:
+            continue
+        price, book = max((books[b][o], b) for b in others)   # best price across non-truth books
         edge = fair[o] * price - 1
         if edge >= min_edge and odds_min <= price <= odds_max:
             out.append({"outcome": o, "price": price, "book": book,

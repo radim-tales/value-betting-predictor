@@ -39,6 +39,14 @@ def render(rep: dict) -> str:
         verdict = "EDGE" if (bt == "soft" and lo > 0) else ""
         lines.append(f"- {bt:<8} {tier:<9} n={g['n']:>3} wins={g['wins']:>3} "
                      f"CLV={g['mean_clv']:+.4f} [{lo:+.4f},{hi:+.4f}] ROI={g['roi']:+.3f} {verdict}")
+    lines.extend([
+        "",
+        "Caveaty:",
+        "- 'close' = poslední snapshot pred vykopem (proxy, ne -5 min).",
+        "- Paper-trading ignoruje slippage a limity/bany knih -> potvrzuje EXISTENCI edge, ne skalovatelnost.",
+        "- Bootstrap CI bere sazky jako nezavisle, coz nejsou (H/D/A tehoz zapasu + stejny match+outcome "
+        "relogovany u ruznych knih pri zmene nejlepsi ceny) -> CI je optimisticky uzsi; ber CLV verdikt s rezervou.",
+    ])
     return "\n".join(lines)
 
 

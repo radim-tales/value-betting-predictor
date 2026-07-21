@@ -1,5 +1,5 @@
 from vbp.live.store import Store
-from vbp.live.report import summarize
+from vbp.live.report import summarize, render
 
 
 def _seed(tmp_path):
@@ -21,6 +21,15 @@ def test_summarize_computes_clv_and_groups(tmp_path):
     assert abs(grp["mean_clv"] - 0.10) < 1e-9
     assert grp["n"] == 1 and grp["wins"] == 1
     assert "clv_ci" in grp and "roi" in grp
+
+
+def test_render_includes_caveats(tmp_path):
+    s = _seed(tmp_path)
+    rep = summarize(s)
+    out = render(rep)
+    assert "Caveaty" in out
+    assert "slippage" in out.lower()
+    assert "proxy" in out.lower()
 
 
 def test_summarize_ignores_unsettled(tmp_path):

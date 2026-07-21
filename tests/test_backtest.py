@@ -1,4 +1,5 @@
 from pathlib import Path
+import pandas as pd
 from vbp.data import load_matches
 from vbp.backtest import run_backtest
 from vbp.anchor import EloAnchor
@@ -46,6 +47,35 @@ def test_warmup_advances_ratings_without_refitting_mapping():
         ref_anchor.update(m)
     assert (ref_anchor._clf.coef_ == ref_coef).all()  # mapping untouched by warmup
     assert ref_anchor.rating("Beta") != EloAnchor(**kw["anchor_cfg"]).rating("Beta")  # ratings did move
+
+def test_skip_first_rounds_is_round_based():
+    # 2 matches on date A, 2 matches on date B; skip_first_rounds=1 should skip
+    # BOTH date-A matches (one round), not just the first match.
+    train_df = load_matches(FIX, odds_source="pinnacle").iloc[:2]
+    test_df = pd.DataFrame([
+        {"Date": pd.Timestamp("2024-01-01"), "HomeTeam": "Alpha", "AwayTeam": "Beta",
+         "FTHG": 1, "FTAG": 0, "FTR": "H",
+         "PSH": 2.0, "PSD": 3.0, "PSA": 4.0, "PSCH": 2.0, "PSCD": 3.0, "PSCA": 4.0},
+        {"Date": pd.Timestamp("2024-01-01"), "HomeTeam": "Gamma", "AwayTeam": "Delta",
+         "FTHG": 0, "FTAG": 1, "FTR": "A",
+         "PSH": 2.0, "PSD": 3.0, "PSA": 4.0, "PSCH": 2.0, "PSCD": 3.0, "PSCA": 4.0},
+        {"Date": pd.Timestamp("2024-01-08"), "HomeTeam": "Beta", "AwayTeam": "Alpha",
+         "FTHG": 1, "FTAG": 1, "FTR": "D",
+         "PSH": 2.0, "PSD": 3.0, "PSA": 4.0, "PSCH": 2.0, "PSCD": 3.0, "PSCA": 4.0},
+        {"Date": pd.Timestamp("2024-01-08"), "HomeTeam": "Delta", "AwayTeam": "Gamma",
+         "FTHG": 2, "FTAG": 0, "FTR": "H",
+         "PSH": 2.0, "PSD": 3.0, "PSA": 4.0, "PSCH": 2.0, "PSCD": 3.0, "PSCA": 4.0},
+    ])
+    result = run_backtest(
+        train_df=train_df, test_df=test_df,
+        odds_source="pinnacle", devig_method="shin",
+        anchor_cfg=dict(k=20, home_adv=70, start_rating=1500),
+        value_cfg=dict(min_edge=0.0, odds_min=1.0, odds_max=99.0),
+        skip_first_rounds=1,
+    )
+    date_a_rows = [r for r in result["audit"] if r["home"] in ("Alpha", "Gamma") and r["i"] < 2]
+    assert all(r["bet"] is None for r in date_a_rows)
+    assert any(r["bet"] is not None for r in result["audit"] if r["i"] >= 2)
 
 def test_backtest_is_deterministic():
     df = load_matches(FIX, odds_source="pinnacle")

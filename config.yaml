@@ -25,10 +25,10 @@ playbook:
   block_min_bets: 25
   promote_after_blocks: 2
 llm:
-  correct_model: claude-haiku-4-5-20251001
+  correct_model: claude-haiku-4-5
   reflect_model: claude-sonnet-5
   temp_correct: 0.0
-  temp_reflect: 0.3
+  reflect_effort: medium
 corrections:
   delta_soft_cap: 0.10
   delta_hard_cap: 0.15

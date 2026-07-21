@@ -10,6 +10,8 @@ dependencies = [
   "scikit-learn>=1.4",
   "pyyaml>=6.0",
   "requests>=2.31",
+  "pydantic>=2.0",
+  "anthropic>=0.69",
 ]
 
 [project.optional-dependencies]
@@ -17,6 +19,7 @@ dev = ["pytest>=8.0"]
 
 [project.scripts]
 vbp-backtest = "vbp.cli:main"
+vbp-learn = "vbp.learn_cli:main"
 
 [build-system]
 requires = ["setuptools>=68"]

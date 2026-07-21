@@ -11,7 +11,7 @@ from .value_filter import select_bet
 _NO_REFLECTION_ROUNDS = 10**9
 
 
-def _summary(bets: list[dict], preds: list[dict], outcomes: list[str]) -> dict:
+def _summary(bets: list[dict], preds: list[dict], outcomes: list[str], final_playbook: str | None = None) -> dict:
     mean_clv = (sum(b["clv"] for b in bets) / len(bets)) if bets else 0.0
     return {
         "bets": bets,
@@ -19,6 +19,7 @@ def _summary(bets: list[dict], preds: list[dict], outcomes: list[str]) -> dict:
         "mean_clv": mean_clv,
         "brier": brier(preds, outcomes) if preds else 0.0,
         "n_bets": len(bets),
+        "final_playbook": final_playbook,
     }
 
 
@@ -34,7 +35,7 @@ def _learning_variant(llm, seed_playbook, block_every_rounds, *, train_df, test_
     )
     preds = [r["corrected_p"] for r in result["audit"]]
     outcomes = [r["result"] for r in result["audit"]]
-    return _summary(result["bets"], preds, outcomes)
+    return _summary(result["bets"], preds, outcomes, final_playbook=result["final_playbook"])
 
 
 def run_ablations(train_df, test_df, warmup_df, llm_factory, seed_playbook, odds_source,

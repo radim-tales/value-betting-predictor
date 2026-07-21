@@ -19,6 +19,7 @@ dev = ["pytest>=8.0"]
 
 [project.scripts]
 vbp-backtest = "vbp.cli:main"
+vbp-learn = "vbp.learn_cli:main"
 
 [build-system]
 requires = ["setuptools>=68"]

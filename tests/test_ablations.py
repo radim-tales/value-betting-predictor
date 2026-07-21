@@ -39,7 +39,7 @@ def test_run_ablations_returns_all_variants():
     assert set(result.keys()) == expected_keys
 
     for name, summary in result.items():
-        assert set(summary.keys()) == {"bets", "roi", "mean_clv", "brier", "n_bets"}
+        assert set(summary.keys()) == {"bets", "roi", "mean_clv", "brier", "n_bets", "final_playbook"}
         assert summary["n_bets"] == len(summary["bets"])
         assert isinstance(summary["roi"], float)
         assert isinstance(summary["brier"], float)

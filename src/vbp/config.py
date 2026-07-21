@@ -26,6 +26,13 @@ class ValueCfg:
     max_bets_per_match: int = 1
 
 @dataclass
+class LlmCfg:
+    correct_model: str = "claude-haiku-4-5"
+    reflect_model: str = "claude-sonnet-5"
+    temp_correct: float = 0.0
+    reflect_effort: str = "medium"
+
+@dataclass
 class Config:
     league: str
     seasons: Seasons
@@ -33,6 +40,7 @@ class Config:
     devig: str
     anchor: AnchorCfg
     value: ValueCfg
+    llm: LlmCfg
 
 def load_config(path: str | Path) -> Config:
     raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
@@ -47,6 +55,7 @@ def load_config(path: str | Path) -> Config:
         devig=raw["devig"],
         anchor=AnchorCfg(**raw.get("anchor", {})),
         value=ValueCfg(**raw.get("value", {})),
+        llm=LlmCfg(**raw.get("llm", {})),
     )
     if not (0 < cfg.value.min_edge < 0.5):
         raise ValueError("min_edge out of range")

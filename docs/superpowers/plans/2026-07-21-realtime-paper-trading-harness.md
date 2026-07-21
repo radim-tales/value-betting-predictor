@@ -109,7 +109,8 @@ REGIONS = "eu,uk"
 MIN_EDGE = 0.03
 ODDS_MIN = 1.6
 ODDS_MAX = 8.0
-CLOSE_BUFFER_MIN = 0            # aktualizuj pin_close dokud now < kickoff
+# anti-leak: snímkování/sázení se v run_once brání proti now >= kickoff (viz Task 8),
+# takže pin_close = poslední snapshot PŘED výkopem. Žádná časová konstanta tu netřeba.
 
 STATE_DIR = Path("live_state")  # NENÍ v .gitignore, commituje se
 BETS_FILE = STATE_DIR / "bets.jsonl"
@@ -177,6 +178,16 @@ def test_classify_book():
     assert classify_book("matchbook") == "exchange"
     assert classify_book("williamhill") == "soft"
     assert classify_book("some_unknown_book") == "soft"   # default
+
+def test_book_missing_an_outcome_is_dropped():
+    ev = {"home_team": "A", "away_team": "B", "bookmakers": [
+        {"key": "pinnacle", "markets": [{"key": "h2h", "outcomes": [
+            {"name": "A", "price": 2.0}, {"name": "B", "price": 4.0}, {"name": "Draw", "price": 3.3}]}]},
+        {"key": "partial", "markets": [{"key": "h2h", "outcomes": [   # missing Draw -> dropped
+            {"name": "A", "price": 2.1}, {"name": "B", "price": 4.2}]}]},
+    ]}
+    books = event_to_books(ev)
+    assert "pinnacle" in books and "partial" not in books
 ```
 
 - [ ] **Step 3: Run → FAIL. Step 4: Implement**
@@ -593,6 +604,9 @@ FIXDIR = Path(__file__).parent / "fixtures"
 ODDS = json.loads((FIXDIR / "odds_sample.json").read_text(encoding="utf-8"))
 SCORES = json.loads((FIXDIR / "scores_sample.json").read_text(encoding="utf-8"))
 
+from datetime import datetime, timezone
+NOW = datetime(2026, 7, 1, tzinfo=timezone.utc)   # before fixture kickoffs (2026-08-01)
+
 class FakeClient:
     def fetch_odds(self, sport, regions="eu,uk"): return ODDS, {"remaining":"499"}
     def fetch_scores(self, sport, days_from=1): return SCORES, {"remaining":"498"}
@@ -600,14 +614,23 @@ class FakeClient:
 def test_run_once_logs_value_and_settles(tmp_path):
     s = Store(tmp_path / "bets.jsonl", tmp_path / "lines.json")
     run_once(FakeClient(), [("soccer_brazil_campeonato","liquid")], s,
-             regions="eu", min_edge=0.0, odds_min=1.0, odds_max=99.0)
+             regions="eu", min_edge=0.0, odds_min=1.0, odds_max=99.0, now=NOW)
     bets = s.load_bets(); lines = s.load_lines()
     assert any(b["match_id"] == "m1" for b in bets)       # m1 has pinnacle -> value logged
     assert all(b["match_id"] != "m2" for b in bets)       # m2 no pinnacle -> nothing
     assert lines["m1"]["pin_open"] is not None            # line snapshotted
     assert lines["m1"]["settled"] is True                 # m1 finished in scores -> settled
     for b in bets:
-        assert "book_type" in b and "league_tier" in b
+        assert "book_type" in b and "league_tier" in b and "ts_detected" in b
+
+def test_run_once_skips_started_matches(tmp_path):
+    s = Store(tmp_path / "bets.jsonl", tmp_path / "lines.json")
+    after = datetime(2099, 1, 1, tzinfo=timezone.utc)     # after all fixture kickoffs
+    run_once(FakeClient(), [("soccer_brazil_campeonato","liquid")], s,
+             regions="eu", min_edge=0.0, odds_min=1.0, odds_max=99.0, now=after)
+    # every event already kicked off relative to `after` -> no snapshots, no bets (anti-leak)
+    assert s.load_bets() == []
+    assert "m1" not in s.load_lines()
 ```
 
 - [ ] **Step 2: Run → FAIL. Step 3: Implement**
@@ -615,6 +638,7 @@ def test_run_once_logs_value_and_settles(tmp_path):
 ```python
 # src/vbp/live/run.py
 from __future__ import annotations
+from datetime import datetime, timezone
 from vbp.devig import devig
 from .adapter import event_to_books
 from .value import find_value
@@ -624,11 +648,17 @@ def _pin_fair(books):
     t = books["pinnacle"]
     return dict(zip("HDA", devig([t["H"], t["D"], t["A"]], "shin")))
 
+def _parse(ts: str) -> datetime:
+    return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+
 def run_once(client, leagues, store, regions="eu,uk",
-             min_edge=0.03, odds_min=1.6, odds_max=8.0):
+             min_edge=0.03, odds_min=1.6, odds_max=8.0, now=None):
+    now = now or datetime.now(timezone.utc)
     for sport, tier in leagues:
         events, quota = client.fetch_odds(sport, regions=regions)
         for ev in events:
+            if now >= _parse(ev["commence_time"]):   # ANTI-LEAK: never snapshot/bet a started match
+                continue
             books = event_to_books(ev)
             if "pinnacle" not in books:
                 continue
@@ -638,9 +668,9 @@ def run_once(client, leagues, store, regions="eu,uk",
             for c in find_value(books, min_edge, odds_min, odds_max):
                 store.add_bet({"match_id": ev["id"], "league": sport, "league_tier": tier,
                                "home": ev["home_team"], "away": ev["away_team"],
-                               "kickoff": ev["commence_time"], **c})
+                               "kickoff": ev["commence_time"], "ts_detected": now.isoformat(), **c})
         scores, _ = client.fetch_scores(sport)
-        settle_finished(store, scores)
+        settle_finished(store, scores)   # settle is independent of the kickoff gate
 
 def main():
     from .config import LEAGUES, REGIONS, MIN_EDGE, ODDS_MIN, ODDS_MAX, BETS_FILE, LINES_FILE

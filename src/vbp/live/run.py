@@ -13,7 +13,13 @@ def _parse(ts: str) -> datetime:
     return datetime.fromisoformat(ts.replace("Z", "+00:00"))
 
 def run_once(client, leagues, store, regions="eu,uk",
-             min_edge=0.03, odds_min=1.6, odds_max=8.0, now=None):
+             min_edge=0.03, odds_min=1.6, odds_max=8.0, now=None,
+             do_settle=True, settle_days_from=3):
+    """Jeden běh: poll odds + snapshot linií, volitelně settle doběhlých zápasů.
+
+    `do_settle=False` šetří kredity - scores stojí 2 kredity/liga a stačí 1x denně
+    (výsledky nikam neutečou), zatímco odds se pollují 3x denně kvůli close snapshotu.
+    """
     now = now or datetime.now(timezone.utc)
     for sport, tier in leagues:
         events, quota = client.fetch_odds(sport, regions=regions)
@@ -31,17 +37,23 @@ def run_once(client, leagues, store, regions="eu,uk",
                 store.add_bet({"match_id": ev["id"], "league": sport, "league_tier": tier,
                                "home": ev["home_team"], "away": ev["away_team"],
                                "kickoff": ev["commence_time"], "ts_detected": now.isoformat(), **c})
-        scores, _ = client.fetch_scores(sport, days_from=3)
-        settle_finished(store, scores)   # settle is independent of the kickoff gate
+        if do_settle:
+            scores, _ = client.fetch_scores(sport, days_from=settle_days_from)
+            settle_finished(store, scores)   # settle is independent of the kickoff gate
 
 def main():
-    from .config import LEAGUES, REGIONS, MIN_EDGE, ODDS_MIN, ODDS_MAX, BETS_FILE, LINES_FILE
+    from .config import (LEAGUES, REGIONS, MIN_EDGE, ODDS_MIN, ODDS_MAX,
+                         BETS_FILE, LINES_FILE, SETTLE_HOUR_UTC)
     from .odds_client import OddsClient
     from .store import Store
     import os
     key = os.environ["ODDS_API_KEY"]
+    now = datetime.now(timezone.utc)
+    do_settle = now.hour == SETTLE_HOUR_UTC
+    print(f"[run] {now.isoformat()} do_settle={do_settle}")
     run_once(OddsClient(key), LEAGUES, Store(BETS_FILE, LINES_FILE),
-             regions=REGIONS, min_edge=MIN_EDGE, odds_min=ODDS_MIN, odds_max=ODDS_MAX)
+             regions=REGIONS, min_edge=MIN_EDGE, odds_min=ODDS_MIN, odds_max=ODDS_MAX,
+             now=now, do_settle=do_settle)
 
 if __name__ == "__main__":
     main()

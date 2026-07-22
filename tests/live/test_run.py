@@ -11,8 +11,11 @@ from datetime import datetime, timezone
 NOW = datetime(2026, 7, 1, tzinfo=timezone.utc)   # before fixture kickoffs (2026-08-01)
 
 class FakeClient:
+    def __init__(self): self.scores_calls = 0
     def fetch_odds(self, sport, regions="eu,uk"): return ODDS, {"remaining":"499"}
-    def fetch_scores(self, sport, days_from=1): return SCORES, {"remaining":"498"}
+    def fetch_scores(self, sport, days_from=1):
+        self.scores_calls += 1
+        return SCORES, {"remaining":"498"}
 
 def test_run_once_logs_value_and_settles(tmp_path):
     s = Store(tmp_path / "bets.jsonl", tmp_path / "lines.json")
@@ -25,6 +28,16 @@ def test_run_once_logs_value_and_settles(tmp_path):
     assert lines["m1"]["settled"] is True                 # m1 finished in scores -> settled
     for b in bets:
         assert "book_type" in b and "league_tier" in b and "ts_detected" in b
+
+def test_run_once_without_settle_saves_credits(tmp_path):
+    # scores stoji 2 kredity/liga -> bezi jen v SETTLE_HOUR_UTC behu
+    s = Store(tmp_path / "bets.jsonl", tmp_path / "lines.json")
+    c = FakeClient()
+    run_once(c, [("soccer_brazil_campeonato","liquid")], s,
+             regions="eu", min_edge=0.0, odds_min=1.0, odds_max=99.0, now=NOW, do_settle=False)
+    assert c.scores_calls == 0                            # zadne scores volani
+    assert any(b["match_id"] == "m1" for b in s.load_bets())   # odds cast bezi dal
+    assert s.load_lines()["m1"]["settled"] is False       # nesettlovano
 
 def test_run_once_skips_started_matches(tmp_path):
     s = Store(tmp_path / "bets.jsonl", tmp_path / "lines.json")

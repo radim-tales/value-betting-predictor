@@ -2,6 +2,8 @@ name: live-harness
 
 on:
   schedule:
+    # 08:00 UTC = jediný běh, který navíc settluje (viz SETTLE_HOUR_UTC v live/config.py).
+    # GitHub cron se může o pár minut opozdit, ale hodinu drží.
     - cron: "0 8 * * *"
     - cron: "0 14 * * *"
     - cron: "0 20 * * *"

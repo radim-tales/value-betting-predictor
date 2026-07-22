@@ -1,0 +1,18 @@
+[
+  {"id": "m1", "sport_key": "soccer_brazil_campeonato", "commence_time": "2026-08-01T20:00:00Z",
+   "home_team": "Alpha FC", "away_team": "Beta FC",
+   "bookmakers": [
+     {"key": "pinnacle", "markets": [{"key": "h2h", "outcomes": [
+        {"name": "Alpha FC", "price": 1.90}, {"name": "Beta FC", "price": 4.20}, {"name": "Draw", "price": 3.50}]}]},
+     {"key": "williamhill", "markets": [{"key": "h2h", "outcomes": [
+        {"name": "Alpha FC", "price": 1.85}, {"name": "Beta FC", "price": 4.60}, {"name": "Draw", "price": 3.40}]}]},
+     {"key": "betfair_ex_eu", "markets": [{"key": "h2h", "outcomes": [
+        {"name": "Alpha FC", "price": 1.95}, {"name": "Beta FC", "price": 4.80}, {"name": "Draw", "price": 3.55}]}]}
+   ]},
+  {"id": "m2", "sport_key": "soccer_brazil_campeonato", "commence_time": "2026-08-01T22:00:00Z",
+   "home_team": "Gamma FC", "away_team": "Delta FC",
+   "bookmakers": [
+     {"key": "williamhill", "markets": [{"key": "h2h", "outcomes": [
+        {"name": "Gamma FC", "price": 2.10}, {"name": "Delta FC", "price": 3.60}, {"name": "Draw", "price": 3.30}]}]}
+   ]}
+]

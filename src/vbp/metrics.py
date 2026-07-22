@@ -24,6 +24,15 @@ def bootstrap_roi_ci(bets: list[dict], n_boot: int = 2000, alpha: float = 0.10, 
     hi = float(np.percentile(rois, 100 * (1 - alpha / 2)))
     return lo, hi
 
+def bootstrap_mean_ci(values: list[float], n_boot: int = 2000, alpha: float = 0.10, seed: int = 0):
+    """Percentile bootstrap CI for the mean of a value list (e.g. per-bet CLV)."""
+    if not values:
+        return (0.0, 0.0)
+    rng = np.random.default_rng(seed)
+    arr = np.asarray(values, dtype=float)
+    means = [rng.choice(arr, size=len(arr), replace=True).mean() for _ in range(n_boot)]
+    return float(np.percentile(means, 100 * alpha / 2)), float(np.percentile(means, 100 * (1 - alpha / 2)))
+
 def brier(preds: list[dict], outcomes: list[str]) -> float:
     """Multiclass Brier over ALL predictions (not just bets)."""
     total = 0.0

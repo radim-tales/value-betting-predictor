@@ -32,10 +32,12 @@ jobs:
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: python -m vbp.live.run
+      - name: Generate dashboard
+        run: python -m vbp.live.report_html docs/index.html
       - name: Commit state
         run: |
           git config user.name "live-harness"
           git config user.email "bot@users.noreply.github.com"
-          git add live_state/
+          git add live_state/ docs/
           git diff --cached --quiet || git commit -m "live: update state $(date -u +%FT%TZ)"
           git push

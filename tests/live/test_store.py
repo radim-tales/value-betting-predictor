@@ -25,3 +25,12 @@ def test_set_result(tmp_path):
     s.set_result("m1", "H")
     ln = s.load_lines()["m1"]
     assert ln["result"] == "H" and ln["settled"] is True
+
+def test_settle_date_gate(tmp_path):
+    # settle gate se ridi ulozenym datem, aby byl imunni vuci zpozdeni GitHub cronu
+    s = Store(tmp_path / "bets.jsonl", tmp_path / "lines.json")
+    assert s.last_settle_date() is None          # cerstvy stav -> settle se ma spustit
+    s.mark_settled("2026-08-04")
+    assert s.last_settle_date() == "2026-08-04"   # tyz den -> uz nesettlovat
+    s2 = Store(tmp_path / "bets.jsonl", tmp_path / "lines.json")
+    assert s2.last_settle_date() == "2026-08-04"  # prezije napric behy (perzistentni)

@@ -43,17 +43,24 @@ def run_once(client, leagues, store, regions="eu,uk",
 
 def main():
     from .config import (LEAGUES, REGIONS, MIN_EDGE, ODDS_MIN, ODDS_MAX,
-                         BETS_FILE, LINES_FILE, SETTLE_HOUR_UTC)
+                         BETS_FILE, LINES_FILE)
     from .odds_client import OddsClient
     from .store import Store
     import os
     key = os.environ["ODDS_API_KEY"]
     now = datetime.now(timezone.utc)
-    do_settle = now.hour == SETTLE_HOUR_UTC
-    print(f"[run] {now.isoformat()} do_settle={do_settle}")
-    run_once(OddsClient(key), LEAGUES, Store(BETS_FILE, LINES_FILE),
+    store = Store(BETS_FILE, LINES_FILE)
+    # Settle 1x za kalendarni den, gate podle ULOZENEHO DATA (ne podle now.hour):
+    # GitHub cron se opozdi o desitky minut az hodinu, takze "now.hour == 8" skoro
+    # nikdy neplatilo a settle se nespoustel. Datum je vuci zpozdeni cronu imunni.
+    today = now.strftime("%Y-%m-%d")
+    do_settle = store.last_settle_date() != today
+    print(f"[run] {now.isoformat()} today={today} do_settle={do_settle}")
+    run_once(OddsClient(key), LEAGUES, store,
              regions=REGIONS, min_edge=MIN_EDGE, odds_min=ODDS_MIN, odds_max=ODDS_MAX,
              now=now, do_settle=do_settle)
+    if do_settle:
+        store.mark_settled(today)
 
 if __name__ == "__main__":
     main()

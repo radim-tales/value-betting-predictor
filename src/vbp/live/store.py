@@ -6,7 +6,16 @@ class Store:
     def __init__(self, bets_file, lines_file):
         self.bets_file = Path(bets_file)
         self.lines_file = Path(lines_file)
+        self.state_file = self.lines_file.parent / "settle_state.json"
         self.bets_file.parent.mkdir(parents=True, exist_ok=True)
+
+    def last_settle_date(self) -> str | None:
+        if not self.state_file.exists():
+            return None
+        return json.loads(self.state_file.read_text(encoding="utf-8")).get("last_settle_date")
+
+    def mark_settled(self, date_str: str):
+        self.state_file.write_text(json.dumps({"last_settle_date": date_str}), encoding="utf-8")
 
     def load_bets(self) -> list[dict]:
         if not self.bets_file.exists():

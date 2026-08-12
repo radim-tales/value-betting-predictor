@@ -1,6 +1,12 @@
 from datetime import datetime, timezone
 from vbp.live.store import Store
-from vbp.live.report_html import build_context, render_html
+from vbp.live.report_html import (
+    BANKROLL_START_EUR,
+    STAKE_EUR,
+    bankroll_points,
+    build_context,
+    render_html,
+)
 
 NOW = datetime(2026, 8, 4, 12, 0, tzinfo=timezone.utc)
 
@@ -51,12 +57,26 @@ def test_render_html_is_self_contained(tmp_path):
     assert "customer lifetime value" in html
     assert "10 €" in html
     assert "+13,0 €" in html                      # vyhra @2.3 -> +1.3 j. * 10 EUR
+    # bankroll graf z dohranych sazek
+    assert 'id="bankroll"' in html
+    assert "Vývoj bankrollu" in html
+    assert '<svg class="chart"' in html
+    assert 'class="pt pt-win"' in html
+    assert f"{BANKROLL_START_EUR:.0f} €" in html
+
+def test_bankroll_points_accumulates(tmp_path):
+    ctx = build_context(_seed(tmp_path), now=NOW)
+    pts = bankroll_points(ctx["bets"])
+    assert pts[0]["bank"] == BANKROLL_START_EUR
+    assert pts[1]["bank"] == BANKROLL_START_EUR + (2.3 - 1.0) * STAKE_EUR
+    assert pts[1]["status"] == "won"
 
 def test_render_html_empty_state(tmp_path):
     # prazdny store nesmi spadnout
     s = Store(tmp_path / "b.jsonl", tmp_path / "l.json")
     html = render_html(build_context(s, now=NOW))
     assert "Zatím žádná dohraná sázka" in html
+    assert "graf se objeví po prvním výsledku" in html
 
 def test_dead_pending_bet_is_dropped(tmp_path):
     # cekajici sazka, jejiz zapas davno probehl, se z reportu vyhodi

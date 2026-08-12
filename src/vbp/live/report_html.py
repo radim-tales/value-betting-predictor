@@ -3,12 +3,14 @@ from __future__ import annotations
 
 Běží v CI po každém cronu: `python -m vbp.live.report_html docs/index.html`.
 Čísla bere ze stejného summarize() jako textový report, plus rozepisuje kompletní
-deník sázek (kdy zachyceno, na co, jak vsazeno, jak dopadlo). Self-contained.
+deník sázek (kdy zachyceno, na co, jak vsazeno, jak dopadlo) a graf bankrollu.
+Self-contained.
 
 Sázky, které kvůli starému bugu zůstaly bez výsledku a už se nedopočítají
 (výkop starší než okno scores API), se z reportu vyhazují - viz `_is_dead`.
 """
 import html
+import math
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from vbp.metrics import clv as clv_fn
@@ -29,6 +31,8 @@ _DEAD_AFTER_DAYS = 4
 
 # Modelový vklad pro sloupec "kolik by to bylo v penězích".
 STAKE_EUR = 10
+# Modelový startovní kapitál pro kumulativní graf bankrollu.
+BANKROLL_START_EUR = 500.0
 
 
 def _pct(x: float) -> str:
@@ -42,6 +46,12 @@ def _sig(x: float) -> str:
 def _eur(units: float) -> str:
     """Zisk/ztráta v jednotkách -> eura při STAKE_EUR na sázku."""
     return f"{units * STAKE_EUR:+.1f} €".replace(".", ",")
+
+
+def _eur_abs(amount: float, signed: bool = False) -> str:
+    """Částka v eurech (ne v jednotkách)."""
+    s = f"{amount:+.2f}" if signed else f"{amount:.2f}"
+    return s.replace(".", ",") + " €"
 
 
 def _parse(ts: str) -> datetime | None:
@@ -173,6 +183,226 @@ def _log_rows_html(bets: list[dict]) -> str:
     return "\n".join(out)
 
 
+def bankroll_points(
+    bets: list[dict],
+    stake: float = STAKE_EUR,
+    start: float = BANKROLL_START_EUR,
+) -> list[dict]:
+    """Kumulativní bankroll po dohraných sázkách (se startovním bodem)."""
+    done = [b for b in bets if b["status"] in ("won", "lost")]
+    done.sort(key=lambda b: (b.get("kickoff") or "", b.get("ts_detected") or ""))
+    points: list[dict] = [{
+        "i": 0, "date": "start", "label": "start", "match": "", "tip": "",
+        "price": None, "status": None, "pnl": 0.0, "bank": start,
+    }]
+    cum = 0.0
+    for i, b in enumerate(done, 1):
+        pnl_e = b["pnl"] * stake
+        cum += pnl_e
+        tip = {"H": b.get("home"), "A": b.get("away"), "D": "remíza"}[b["outcome"]]
+        ko = b.get("kickoff") or ""
+        points.append({
+            "i": i,
+            "date": ko[:10],
+            "label": f"{ko[8:10]}.{ko[5:7]}." if len(ko) >= 10 else ko,
+            "match": f"{b.get('home', '?')} – {b.get('away', '?')}",
+            "tip": tip or "",
+            "price": b["price"],
+            "status": b["status"],
+            "pnl": round(pnl_e, 2),
+            "bank": round(start + cum, 2),
+        })
+    return points
+
+
+def _render_bankroll_section(bets: list[dict]) -> str:
+    """SVG graf kumulativního bankrollu + minitiles, ve stylu hlavního dashboardu."""
+    points = bankroll_points(bets)
+    if len(points) <= 1:
+        return (
+            '<section id="bankroll">\n'
+            '    <div class="eyebrow">Bankroll</div>\n'
+            '    <h2 class="serif" style="margin-top:6px">Vývoj bankrollu</h2>\n'
+            '    <p class="lead-in">Model: start <b>'
+            f'{BANKROLL_START_EUR:.0f} €</b>, flat <b>{STAKE_EUR:.0f} €</b> na sázku.</p>\n'
+            '    <div class="note">Zatím žádná dohraná sázka - graf se objeví po prvním výsledku.</div>\n'
+            '  </section>'
+        )
+
+    W, H = 960, 400
+    pad_l, pad_r, pad_t, pad_b = 64, 28, 28, 52
+    cw, ch = W - pad_l - pad_r, H - pad_t - pad_b
+    banks = [p["bank"] for p in points]
+    ymin = math.floor((min(banks) - 20) / 20) * 20
+    ymax = math.ceil((max(banks) + 20) / 20) * 20
+    if ymax <= ymin:
+        ymax = ymin + 40
+    n = len(points)
+    start = BANKROLL_START_EUR
+
+    def x_at(i: int) -> float:
+        return pad_l if n <= 1 else pad_l + (i / (n - 1)) * cw
+
+    def y_at(bank: float) -> float:
+        return pad_t + (1 - (bank - ymin) / (ymax - ymin)) * ch
+
+    coords = [(x_at(i), y_at(p["bank"])) for i, p in enumerate(points)]
+    path_d = "M " + " L ".join(f"{x:.2f},{y:.2f}" for x, y in coords)
+    y_bottom = y_at(ymin)
+    area_d = (
+        path_d
+        + f" L {coords[-1][0]:.2f},{y_bottom:.2f} L {coords[0][0]:.2f},{y_bottom:.2f} Z"
+    )
+
+    y_grid: list[str] = []
+    for t in range(int(ymin), int(ymax) + 1, 20):
+        y = y_at(t)
+        y_grid.append(
+            f'<line class="cgrid" x1="{pad_l}" y1="{y:.2f}" x2="{W - pad_r}" y2="{y:.2f}"/>'
+        )
+        y_grid.append(
+            f'<text class="caxis" x="{pad_l - 10}" y="{y + 4:.2f}" text-anchor="end">{t}</text>'
+        )
+
+    seen: set[str] = set()
+    x_lab_svg: list[str] = []
+    for i, p in enumerate(points):
+        if p["date"] == "start":
+            lab, key = "start", "start"
+        elif p["date"] not in seen:
+            seen.add(p["date"])
+            lab, key = p["label"], p["date"]
+        else:
+            continue
+        x = x_at(i)
+        x_lab_svg.append(
+            f'<text class="caxis" x="{x:.2f}" y="{H - pad_b + 20}" text-anchor="middle">'
+            f'{html.escape(lab)}</text>'
+        )
+
+    circles: list[str] = []
+    for i, p in enumerate(points):
+        x, y = coords[i]
+        cls = "pt-start" if i == 0 else ("pt-win" if p["status"] == "won" else "pt-loss")
+        price = "" if p["price"] is None else f'{p["price"]:.2f}'
+        circles.append(
+            f'<circle class="pt {cls}" cx="{x:.2f}" cy="{y:.2f}" r="4.5" '
+            f'data-i="{i}" data-bank="{p["bank"]}" data-pnl="{p["pnl"]}" '
+            f'data-match="{html.escape(p["match"], quote=True)}" '
+            f'data-tip="{html.escape(p["tip"] or "", quote=True)}" '
+            f'data-price="{price}" data-status="{p["status"] or "start"}" '
+            f'data-date="{html.escape(p["date"], quote=True)}"/>'
+        )
+
+    y_start = y_at(start)
+    final = points[-1]["bank"]
+    pnl = final - start
+    pnl_cls = "pos" if pnl >= 0 else "neg"
+    roi = pnl / start * 100 if start else 0.0
+    mid_y = pad_t + ch / 2
+    n_bets = len(points) - 1
+    wins = sum(1 for p in points if p["status"] == "won")
+    losses = sum(1 for p in points if p["status"] == "lost")
+
+    return f'''  <section id="bankroll">
+    <div class="eyebrow">Bankroll</div>
+    <h2 class="serif" style="margin-top:6px">Vývoj bankrollu</h2>
+    <p class="lead-in">Modelový průběh jmění: start <b>{start:.0f} €</b>, flat vklad
+      <b>{STAKE_EUR:.0f} €</b> na sázku · {n_bets} dohraných ({wins}–{losses}).
+      Není to reálný účet - jen převod papírových jednotek na peníze.</p>
+    <div class="tiles" style="margin-bottom:16px">
+      <div class="tile"><div class="k num">{start:.0f} €</div><div class="l">start</div></div>
+      <div class="tile"><div class="k num {pnl_cls}">{_eur_abs(final)}</div><div class="l">teď</div></div>
+      <div class="tile"><div class="k num {pnl_cls}">{_eur_abs(pnl, signed=True)}</div>
+        <div class="l">P/L ({roi:+.1f} %)</div></div>
+      <div class="tile"><div class="k num">{_eur_abs(min(banks))}</div><div class="l">minimum</div></div>
+      <div class="tile"><div class="k num">{_eur_abs(max(banks))}</div><div class="l">maximum</div></div>
+    </div>
+    <div class="chart-card" id="bank-card">
+      <div class="chart-title">Kumulativní jmění po sázkách</div>
+      <div class="tooltip" id="bank-tip"></div>
+      <svg class="chart" viewBox="0 0 {W} {H}" role="img" aria-label="Graf bankrollu">
+        <defs>
+          <linearGradient id="bank-ag" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--teal)" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="var(--teal)" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        {''.join(y_grid)}
+        <line class="start-line" x1="{pad_l}" y1="{y_start:.2f}" x2="{W - pad_r}" y2="{y_start:.2f}"/>
+        <text class="start-label" x="{W - pad_r}" y="{y_start - 6:.2f}" text-anchor="end">start {start:.0f} €</text>
+        <path class="area" d="{area_d}"/>
+        <path class="cline" d="{path_d}"/>
+        {''.join(circles)}
+        {''.join(x_lab_svg)}
+        <text class="caxis" x="16" y="{mid_y:.0f}" text-anchor="middle"
+              transform="rotate(-90 16 {mid_y:.0f})">Bankroll (€)</text>
+      </svg>
+      <div class="legend">
+        <span><i class="dot s"></i> Start</span>
+        <span><i class="dot w"></i> Výhra</span>
+        <span><i class="dot l"></i> Prohra</span>
+        <span class="muted">— — startovní kapitál</span>
+      </div>
+    </div>
+  </section>
+  <script>
+  (function () {{
+    var tip = document.getElementById("bank-tip");
+    var card = document.getElementById("bank-card");
+    if (!tip || !card) return;
+    function fmt(n) {{
+      return n.toFixed(2).replace(".", ",") + " €";
+    }}
+    function position(e) {{
+      var r = card.getBoundingClientRect();
+      var x = e.clientX - r.left + 14;
+      var y = e.clientY - r.top + 14;
+      var tw = tip.offsetWidth || 220;
+      var th = tip.offsetHeight || 100;
+      if (x + tw > r.width - 8) x = e.clientX - r.left - tw - 12;
+      if (y + th > r.height - 8) y = e.clientY - r.top - th - 8;
+      tip.style.left = x + "px";
+      tip.style.top = y + "px";
+    }}
+    card.querySelectorAll("circle.pt").forEach(function (el) {{
+      el.addEventListener("mouseenter", function (e) {{
+        el.classList.add("active");
+        var st = el.dataset.status;
+        var bank = fmt(Number(el.dataset.bank));
+        var body;
+        if (st === "start") {{
+          body = '<div class="t">Startovní kapitál</div>' +
+            '<div class="row"><span class="m">Bankroll</span><span><b>' + bank + "</b></span></div>";
+        }} else {{
+          var pnl = Number(el.dataset.pnl);
+          var pnlS = (pnl >= 0 ? "+" : "") + Math.abs(pnl).toFixed(2).replace(".", ",") + " €";
+          var res = st === "won"
+            ? '<span class="pos">výhra</span>'
+            : '<span class="neg">prohra</span>';
+          var price = el.dataset.price || "-";
+          body = '<div class="t">' + el.dataset.match + "</div>" +
+            '<div class="m">' + el.dataset.date + " · tip: " + el.dataset.tip +
+            " @ " + price + "</div>" +
+            '<div class="row"><span class="m">Výsledek</span><span>' + res + "</span></div>" +
+            '<div class="row"><span class="m">P/L sázky</span><span class="' +
+            (pnl >= 0 ? "pos" : "neg") + '">' + pnlS + "</span></div>" +
+            '<div class="row"><span class="m">Bankroll</span><span><b>' + bank + "</b></span></div>";
+        }}
+        tip.innerHTML = body;
+        tip.classList.add("show");
+        position(e);
+      }});
+      el.addEventListener("mousemove", position);
+      el.addEventListener("mouseleave", function () {{
+        el.classList.remove("active");
+        tip.classList.remove("show");
+      }});
+    }});
+  }})();
+  </script>'''
+
+
 def render_html(ctx: dict) -> str:
     gen = ctx["generated"].strftime("%d. %m. %Y %H:%M UTC")
     record = f'{ctx["wins"]}-{ctx["losses"]}' if ctx["done"] else "-"
@@ -191,6 +421,7 @@ def render_html(ctx: dict) -> str:
         stake_eur=STAKE_EUR,
         bucket_rows=_bucket_rows_html(ctx["by"]),
         log_rows=_log_rows_html(ctx["bets"]),
+        bankroll_section=_render_bankroll_section(ctx["bets"]),
     )
 
 
@@ -261,6 +492,35 @@ _TEMPLATE = """<!doctype html>
   ul.caveats li::before{{content:"";position:absolute;left:4px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--rust)}}
   footer{{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:.8rem}}
   code{{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:var(--line);padding:1px 6px;border-radius:5px}}
+  .chart-card{{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 10px 12px;
+    box-shadow:var(--shadow);position:relative}}
+  .chart-title{{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);
+    font-weight:600;margin:0 0 8px 12px}}
+  svg.chart{{width:100%;height:auto;display:block}}
+  .cgrid{{stroke:var(--line);stroke-width:1}}
+  .caxis{{fill:var(--ink-soft);font-size:11px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}}
+  .area{{fill:url(#bank-ag)}}
+  .cline{{fill:none;stroke:var(--teal);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}}
+  .start-line{{stroke:var(--ink-soft);stroke-width:1.2;stroke-dasharray:5 5;opacity:.7}}
+  .start-label{{fill:var(--ink-soft);font-size:11px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}}
+  .pt{{stroke:var(--panel);stroke-width:1.5;cursor:pointer}}
+  .pt:hover,.pt.active{{r:7}}
+  .pt-start{{fill:var(--ochre)}}
+  .pt-win{{fill:var(--teal)}}
+  .pt-loss{{fill:var(--rust)}}
+  .tooltip{{position:absolute;pointer-events:none;z-index:5;background:var(--panel);border:1px solid var(--line-strong);
+    border-radius:10px;padding:10px 12px;min-width:200px;box-shadow:var(--shadow);font-size:.84rem;line-height:1.4;
+    opacity:0;transform:translateY(4px);transition:opacity .12s;color:var(--ink)}}
+  .tooltip.show{{opacity:1;transform:none}}
+  .tooltip .t{{font-weight:650;margin-bottom:4px}}
+  .tooltip .m{{color:var(--ink-soft);font-size:.8rem}}
+  .tooltip .row{{display:flex;justify-content:space-between;gap:16px;margin-top:3px}}
+  .legend{{display:flex;flex-wrap:wrap;gap:14px 20px;margin:14px 8px 0;font-size:.82rem;color:var(--ink-soft)}}
+  .legend span{{display:inline-flex;align-items:center;gap:6px}}
+  .dot{{width:9px;height:9px;border-radius:50%;display:inline-block}}
+  .dot.w{{background:var(--teal)}}
+  .dot.l{{background:var(--rust)}}
+  .dot.s{{background:var(--ochre)}}
 </style>
 </head>
 <body>
@@ -297,6 +557,8 @@ _TEMPLATE = """<!doctype html>
       sázky zůstaly bez výsledku a už se nedopočítají (staré výsledky nejsou k dispozici). Takových sázek
       bylo {dropped} a v deníku je proto nezobrazujeme.</div>
   </section>
+
+{bankroll_section}
 
   <section>
     <div class="eyebrow">Deník</div>

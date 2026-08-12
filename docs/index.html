@@ -65,6 +65,35 @@
   ul.caveats li::before{content:"";position:absolute;left:4px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--rust)}
   footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:.8rem}
   code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:var(--line);padding:1px 6px;border-radius:5px}
+  .chart-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 10px 12px;
+    box-shadow:var(--shadow);position:relative}
+  .chart-title{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);
+    font-weight:600;margin:0 0 8px 12px}
+  svg.chart{width:100%;height:auto;display:block}
+  .cgrid{stroke:var(--line);stroke-width:1}
+  .caxis{fill:var(--ink-soft);font-size:11px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+  .area{fill:url(#bank-ag)}
+  .cline{fill:none;stroke:var(--teal);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
+  .start-line{stroke:var(--ink-soft);stroke-width:1.2;stroke-dasharray:5 5;opacity:.7}
+  .start-label{fill:var(--ink-soft);font-size:11px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+  .pt{stroke:var(--panel);stroke-width:1.5;cursor:pointer}
+  .pt:hover,.pt.active{r:7}
+  .pt-start{fill:var(--ochre)}
+  .pt-win{fill:var(--teal)}
+  .pt-loss{fill:var(--rust)}
+  .tooltip{position:absolute;pointer-events:none;z-index:5;background:var(--panel);border:1px solid var(--line-strong);
+    border-radius:10px;padding:10px 12px;min-width:200px;box-shadow:var(--shadow);font-size:.84rem;line-height:1.4;
+    opacity:0;transform:translateY(4px);transition:opacity .12s;color:var(--ink)}
+  .tooltip.show{opacity:1;transform:none}
+  .tooltip .t{font-weight:650;margin-bottom:4px}
+  .tooltip .m{color:var(--ink-soft);font-size:.8rem}
+  .tooltip .row{display:flex;justify-content:space-between;gap:16px;margin-top:3px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px 20px;margin:14px 8px 0;font-size:.82rem;color:var(--ink-soft)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .dot.w{background:var(--teal)}
+  .dot.l{background:var(--rust)}
+  .dot.s{background:var(--ochre)}
 </style>
 </head>
 <body>
@@ -76,7 +105,7 @@
       kurz aspoň o&nbsp;3&nbsp;% výhodnější, než odpovídá férové pravděpodobnosti (tu bereme z Pinnacle,
       nejostřejší kanceláře na trhu). Nesází se skutečné peníze - každá sázka je jen na papíře a jen se
       zaznamenává, jak by dopadla. Stránka se přepisuje sama po každém automatickém běhu.</p>
-    <p class="stamp">Aktualizováno: <b>12. 08. 2026 13:11 UTC</b> &middot; automaticky, po každém běhu</p>
+    <p class="stamp">Aktualizováno: <b>12. 08. 2026 13:33 UTC</b> &middot; automaticky, po každém běhu</p>
   </header>
 
   <section>
@@ -101,6 +130,104 @@
       sázky zůstaly bez výsledku a už se nedopočítají (staré výsledky nejsou k dispozici). Takových sázek
       bylo 36 a v deníku je proto nezobrazujeme.</div>
   </section>
+
+  <section id="bankroll">
+    <div class="eyebrow">Bankroll</div>
+    <h2 class="serif" style="margin-top:6px">Vývoj bankrollu</h2>
+    <p class="lead-in">Modelový průběh jmění: start <b>500 €</b>, flat vklad
+      <b>10 €</b> na sázku · 30 dohraných (14–16).
+      Není to reálný účet - jen převod papírových jednotek na peníze.</p>
+    <div class="tiles" style="margin-bottom:16px">
+      <div class="tile"><div class="k num">500 €</div><div class="l">start</div></div>
+      <div class="tile"><div class="k num pos">615,10 €</div><div class="l">teď</div></div>
+      <div class="tile"><div class="k num pos">+115,10 €</div>
+        <div class="l">P/L (+23.0 %)</div></div>
+      <div class="tile"><div class="k num">468,10 €</div><div class="l">minimum</div></div>
+      <div class="tile"><div class="k num">638,80 €</div><div class="l">maximum</div></div>
+    </div>
+    <div class="chart-card" id="bank-card">
+      <div class="chart-title">Kumulativní jmění po sázkách</div>
+      <div class="tooltip" id="bank-tip"></div>
+      <svg class="chart" viewBox="0 0 960 400" role="img" aria-label="Graf bankrollu">
+        <defs>
+          <linearGradient id="bank-ag" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--teal)" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="var(--teal)" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        <line class="cgrid" x1="64" y1="348.00" x2="932" y2="348.00"/><text class="caxis" x="54" y="352.00" text-anchor="end">440</text><line class="cgrid" x1="64" y1="318.91" x2="932" y2="318.91"/><text class="caxis" x="54" y="322.91" text-anchor="end">460</text><line class="cgrid" x1="64" y1="289.82" x2="932" y2="289.82"/><text class="caxis" x="54" y="293.82" text-anchor="end">480</text><line class="cgrid" x1="64" y1="260.73" x2="932" y2="260.73"/><text class="caxis" x="54" y="264.73" text-anchor="end">500</text><line class="cgrid" x1="64" y1="231.64" x2="932" y2="231.64"/><text class="caxis" x="54" y="235.64" text-anchor="end">520</text><line class="cgrid" x1="64" y1="202.55" x2="932" y2="202.55"/><text class="caxis" x="54" y="206.55" text-anchor="end">540</text><line class="cgrid" x1="64" y1="173.45" x2="932" y2="173.45"/><text class="caxis" x="54" y="177.45" text-anchor="end">560</text><line class="cgrid" x1="64" y1="144.36" x2="932" y2="144.36"/><text class="caxis" x="54" y="148.36" text-anchor="end">580</text><line class="cgrid" x1="64" y1="115.27" x2="932" y2="115.27"/><text class="caxis" x="54" y="119.27" text-anchor="end">600</text><line class="cgrid" x1="64" y1="86.18" x2="932" y2="86.18"/><text class="caxis" x="54" y="90.18" text-anchor="end">620</text><line class="cgrid" x1="64" y1="57.09" x2="932" y2="57.09"/><text class="caxis" x="54" y="61.09" text-anchor="end">640</text><line class="cgrid" x1="64" y1="28.00" x2="932" y2="28.00"/><text class="caxis" x="54" y="32.00" text-anchor="end">660</text>
+        <line class="start-line" x1="64" y1="260.73" x2="932" y2="260.73"/>
+        <text class="start-label" x="932" y="254.73" text-anchor="end">start 500 €</text>
+        <path class="area" d="M 64.00,260.73 L 92.93,275.27 L 121.87,260.00 L 150.80,274.55 L 179.73,263.49 L 208.67,278.04 L 237.60,292.58 L 266.53,307.13 L 295.47,278.04 L 324.40,269.02 L 353.33,283.56 L 382.27,255.20 L 411.20,224.65 L 440.13,239.20 L 469.07,253.75 L 498.00,268.29 L 526.93,282.84 L 555.87,247.93 L 584.80,213.02 L 613.73,178.11 L 642.67,143.20 L 671.60,108.29 L 700.53,58.84 L 729.47,73.38 L 758.40,87.93 L 787.33,102.47 L 816.27,117.02 L 845.20,131.56 L 874.13,146.11 L 903.07,125.31 L 932.00,93.31 L 932.00,348.00 L 64.00,348.00 Z"/>
+        <path class="cline" d="M 64.00,260.73 L 92.93,275.27 L 121.87,260.00 L 150.80,274.55 L 179.73,263.49 L 208.67,278.04 L 237.60,292.58 L 266.53,307.13 L 295.47,278.04 L 324.40,269.02 L 353.33,283.56 L 382.27,255.20 L 411.20,224.65 L 440.13,239.20 L 469.07,253.75 L 498.00,268.29 L 526.93,282.84 L 555.87,247.93 L 584.80,213.02 L 613.73,178.11 L 642.67,143.20 L 671.60,108.29 L 700.53,58.84 L 729.47,73.38 L 758.40,87.93 L 787.33,102.47 L 816.27,117.02 L 845.20,131.56 L 874.13,146.11 L 903.07,125.31 L 932.00,93.31"/>
+        <circle class="pt pt-start" cx="64.00" cy="260.73" r="4.5" data-i="0" data-bank="500.0" data-pnl="0.0" data-match="" data-tip="" data-price="" data-status="start" data-date="start"/><circle class="pt pt-loss" cx="92.93" cy="275.27" r="4.5" data-i="1" data-bank="490.0" data-pnl="-10.0" data-match="Östersunds FK – Östers IF" data-tip="Östers IF" data-price="3.70" data-status="lost" data-date="2026-08-01"/><circle class="pt pt-win" cx="121.87" cy="260.00" r="4.5" data-i="2" data-bank="500.5" data-pnl="10.5" data-match="Östersunds FK – Östers IF" data-tip="Östersunds FK" data-price="2.05" data-status="won" data-date="2026-08-01"/><circle class="pt pt-loss" cx="150.80" cy="274.55" r="4.5" data-i="3" data-bank="490.5" data-pnl="-10.0" data-match="Varbergs BoIS – Falkenbergs FF" data-tip="Falkenbergs FF" data-price="4.00" data-status="lost" data-date="2026-08-01"/><circle class="pt pt-win" cx="179.73" cy="263.49" r="4.5" data-i="4" data-bank="498.1" data-pnl="7.6" data-match="Sandvikens IF – GIF Sundsvall" data-tip="Sandvikens IF" data-price="1.76" data-status="won" data-date="2026-08-01"/><circle class="pt pt-loss" cx="208.67" cy="278.04" r="4.5" data-i="5" data-bank="488.1" data-pnl="-10.0" data-match="IFK Norrkoping – Helsingborgs IF" data-tip="Helsingborgs IF" data-price="5.50" data-status="lost" data-date="2026-08-01"/><circle class="pt pt-loss" cx="237.60" cy="292.58" r="4.5" data-i="6" data-bank="478.1" data-pnl="-10.0" data-match="IK Brage – Landskrona BoIS" data-tip="remíza" data-price="3.75" data-status="lost" data-date="2026-08-01"/><circle class="pt pt-loss" cx="266.53" cy="307.13" r="4.5" data-i="7" data-bank="468.1" data-pnl="-10.0" data-match="Örebro SK – IFK Värnamo" data-tip="Örebro SK" data-price="2.31" data-status="lost" data-date="2026-08-03"/><circle class="pt pt-win" cx="295.47" cy="278.04" r="4.5" data-i="8" data-bank="488.1" data-pnl="20.0" data-match="Örebro SK – IFK Värnamo" data-tip="IFK Värnamo" data-price="3.00" data-status="won" data-date="2026-08-03"/><circle class="pt pt-win" cx="324.40" cy="269.02" r="4.5" data-i="9" data-bank="494.3" data-pnl="6.2" data-match="Östersunds FK – GIF Sundsvall" data-tip="Östersunds FK" data-price="1.62" data-status="won" data-date="2026-08-07"/><circle class="pt pt-loss" cx="353.33" cy="283.56" r="4.5" data-i="10" data-bank="484.3" data-pnl="-10.0" data-match="Falkenbergs FF – Nordic United FC" data-tip="Nordic United FC" data-price="3.55" data-status="lost" data-date="2026-08-08"/><circle class="pt pt-win" cx="382.27" cy="255.20" r="4.5" data-i="11" data-bank="503.8" data-pnl="19.5" data-match="Ljungskile SK – IK Oddevold" data-tip="IK Oddevold" data-price="2.95" data-status="won" data-date="2026-08-08"/><circle class="pt pt-win" cx="411.20" cy="224.65" r="4.5" data-i="12" data-bank="524.8" data-pnl="21.0" data-match="Östers IF – Landskrona BoIS" data-tip="Landskrona BoIS" data-price="3.10" data-status="won" data-date="2026-08-08"/><circle class="pt pt-loss" cx="440.13" cy="239.20" r="4.5" data-i="13" data-bank="514.8" data-pnl="-10.0" data-match="IFK Norrkoping – IK Brage" data-tip="IK Brage" data-price="5.75" data-status="lost" data-date="2026-08-08"/><circle class="pt pt-loss" cx="469.07" cy="253.75" r="4.5" data-i="14" data-bank="504.8" data-pnl="-10.0" data-match="IFK Norrkoping – IK Brage" data-tip="IK Brage" data-price="6.00" data-status="lost" data-date="2026-08-08"/><circle class="pt pt-loss" cx="498.00" cy="268.29" r="4.5" data-i="15" data-bank="494.8" data-pnl="-10.0" data-match="Coritiba – Chapecoense" data-tip="Chapecoense" data-price="5.75" data-status="lost" data-date="2026-08-08"/><circle class="pt pt-loss" cx="526.93" cy="282.84" r="4.5" data-i="16" data-bank="484.8" data-pnl="-10.0" data-match="Coritiba – Chapecoense" data-tip="Chapecoense" data-price="6.20" data-status="lost" data-date="2026-08-08"/><circle class="pt pt-win" cx="555.87" cy="247.93" r="4.5" data-i="17" data-bank="508.8" data-pnl="24.0" data-match="Botafogo – Fluminense" data-tip="remíza" data-price="3.40" data-status="won" data-date="2026-08-09"/><circle class="pt pt-win" cx="584.80" cy="213.02" r="4.5" data-i="18" data-bank="532.8" data-pnl="24.0" data-match="Botafogo – Fluminense" data-tip="remíza" data-price="3.40" data-status="won" data-date="2026-08-09"/><circle class="pt pt-win" cx="613.73" cy="178.11" r="4.5" data-i="19" data-bank="556.8" data-pnl="24.0" data-match="Botafogo – Fluminense" data-tip="remíza" data-price="3.40" data-status="won" data-date="2026-08-09"/><circle class="pt pt-win" cx="642.67" cy="143.20" r="4.5" data-i="20" data-bank="580.8" data-pnl="24.0" data-match="Botafogo – Fluminense" data-tip="remíza" data-price="3.40" data-status="won" data-date="2026-08-09"/><circle class="pt pt-win" cx="671.60" cy="108.29" r="4.5" data-i="21" data-bank="604.8" data-pnl="24.0" data-match="Botafogo – Fluminense" data-tip="remíza" data-price="3.40" data-status="won" data-date="2026-08-09"/><circle class="pt pt-win" cx="700.53" cy="58.84" r="4.5" data-i="22" data-bank="638.8" data-pnl="34.0" data-match="Varbergs BoIS – Sandvikens IF" data-tip="Sandvikens IF" data-price="4.40" data-status="won" data-date="2026-08-09"/><circle class="pt pt-loss" cx="729.47" cy="73.38" r="4.5" data-i="23" data-bank="628.8" data-pnl="-10.0" data-match="Cruzeiro – Mirassol" data-tip="Mirassol" data-price="5.90" data-status="lost" data-date="2026-08-09"/><circle class="pt pt-loss" cx="758.40" cy="87.93" r="4.5" data-i="24" data-bank="618.8" data-pnl="-10.0" data-match="Bahia – Vasco da Gama" data-tip="Vasco da Gama" data-price="4.50" data-status="lost" data-date="2026-08-09"/><circle class="pt pt-loss" cx="787.33" cy="102.47" r="4.5" data-i="25" data-bank="608.8" data-pnl="-10.0" data-match="Palmeiras – Internacional" data-tip="Internacional" data-price="6.50" data-status="lost" data-date="2026-08-09"/><circle class="pt pt-loss" cx="816.27" cy="117.02" r="4.5" data-i="26" data-bank="598.8" data-pnl="-10.0" data-match="Palmeiras – Internacional" data-tip="Internacional" data-price="6.50" data-status="lost" data-date="2026-08-09"/><circle class="pt pt-loss" cx="845.20" cy="131.56" r="4.5" data-i="27" data-bank="588.8" data-pnl="-10.0" data-match="Bahia – Vasco da Gama" data-tip="Vasco da Gama" data-price="4.33" data-status="lost" data-date="2026-08-09"/><circle class="pt pt-loss" cx="874.13" cy="146.11" r="4.5" data-i="28" data-bank="578.8" data-pnl="-10.0" data-match="Palmeiras – Internacional" data-tip="Internacional" data-price="6.80" data-status="lost" data-date="2026-08-09"/><circle class="pt pt-win" cx="903.07" cy="125.31" r="4.5" data-i="29" data-bank="593.1" data-pnl="14.3" data-match="Norrby IF – Örebro SK" data-tip="Norrby IF" data-price="2.43" data-status="won" data-date="2026-08-10"/><circle class="pt pt-win" cx="932.00" cy="93.31" r="4.5" data-i="30" data-bank="615.1" data-pnl="22.0" data-match="Helsingborgs IF – IFK Värnamo" data-tip="IFK Värnamo" data-price="3.20" data-status="won" data-date="2026-08-11"/>
+        <text class="caxis" x="64.00" y="368" text-anchor="middle">start</text><text class="caxis" x="92.93" y="368" text-anchor="middle">01.08.</text><text class="caxis" x="266.53" y="368" text-anchor="middle">03.08.</text><text class="caxis" x="324.40" y="368" text-anchor="middle">07.08.</text><text class="caxis" x="353.33" y="368" text-anchor="middle">08.08.</text><text class="caxis" x="555.87" y="368" text-anchor="middle">09.08.</text><text class="caxis" x="903.07" y="368" text-anchor="middle">10.08.</text><text class="caxis" x="932.00" y="368" text-anchor="middle">11.08.</text>
+        <text class="caxis" x="16" y="188" text-anchor="middle"
+              transform="rotate(-90 16 188)">Bankroll (€)</text>
+      </svg>
+      <div class="legend">
+        <span><i class="dot s"></i> Start</span>
+        <span><i class="dot w"></i> Výhra</span>
+        <span><i class="dot l"></i> Prohra</span>
+        <span class="muted">— — startovní kapitál</span>
+      </div>
+    </div>
+  </section>
+  <script>
+  (function () {
+    var tip = document.getElementById("bank-tip");
+    var card = document.getElementById("bank-card");
+    if (!tip || !card) return;
+    function fmt(n) {
+      return n.toFixed(2).replace(".", ",") + " €";
+    }
+    function position(e) {
+      var r = card.getBoundingClientRect();
+      var x = e.clientX - r.left + 14;
+      var y = e.clientY - r.top + 14;
+      var tw = tip.offsetWidth || 220;
+      var th = tip.offsetHeight || 100;
+      if (x + tw > r.width - 8) x = e.clientX - r.left - tw - 12;
+      if (y + th > r.height - 8) y = e.clientY - r.top - th - 8;
+      tip.style.left = x + "px";
+      tip.style.top = y + "px";
+    }
+    card.querySelectorAll("circle.pt").forEach(function (el) {
+      el.addEventListener("mouseenter", function (e) {
+        el.classList.add("active");
+        var st = el.dataset.status;
+        var bank = fmt(Number(el.dataset.bank));
+        var body;
+        if (st === "start") {
+          body = '<div class="t">Startovní kapitál</div>' +
+            '<div class="row"><span class="m">Bankroll</span><span><b>' + bank + "</b></span></div>";
+        } else {
+          var pnl = Number(el.dataset.pnl);
+          var pnlS = (pnl >= 0 ? "+" : "") + Math.abs(pnl).toFixed(2).replace(".", ",") + " €";
+          var res = st === "won"
+            ? '<span class="pos">výhra</span>'
+            : '<span class="neg">prohra</span>';
+          var price = el.dataset.price || "-";
+          body = '<div class="t">' + el.dataset.match + "</div>" +
+            '<div class="m">' + el.dataset.date + " · tip: " + el.dataset.tip +
+            " @ " + price + "</div>" +
+            '<div class="row"><span class="m">Výsledek</span><span>' + res + "</span></div>" +
+            '<div class="row"><span class="m">P/L sázky</span><span class="' +
+            (pnl >= 0 ? "pos" : "neg") + '">' + pnlS + "</span></div>" +
+            '<div class="row"><span class="m">Bankroll</span><span><b>' + bank + "</b></span></div>";
+        }
+        tip.innerHTML = body;
+        tip.classList.add("show");
+        position(e);
+      });
+      el.addEventListener("mousemove", position);
+      el.addEventListener("mouseleave", function () {
+        el.classList.remove("active");
+        tip.classList.remove("show");
+      });
+    });
+  })();
+  </script>
 
   <section>
     <div class="eyebrow">Deník</div>

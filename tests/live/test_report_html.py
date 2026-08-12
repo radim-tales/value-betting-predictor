@@ -20,7 +20,7 @@ def test_build_context_counts(tmp_path):
     ctx = build_context(_seed(tmp_path), now=NOW)
     assert ctx["total_bets"] == 1
     assert ctx["settled_bets"] == 1
-    assert ctx["kicked_off"] == 1          # kickoff 2026-08-01 < NOW
+    assert ctx["dropped"] == 0              # settled bet se nevyhazuje
     assert ("soft", "neglected") in ctx["by"]
     assert ctx["done"] == 1 and ctx["wins"] == 1 and ctx["losses"] == 0
     assert ctx["pnl"] == 2.3 - 1.0         # výhra @2.3 -> +1.3 j.
@@ -50,4 +50,17 @@ def test_render_html_empty_state(tmp_path):
     # prazdny store nesmi spadnout
     s = Store(tmp_path / "b.jsonl", tmp_path / "l.json")
     html = render_html(build_context(s, now=NOW))
-    assert "Zatím žádná settled" in html
+    assert "Zatím žádná dohraná sázka" in html
+
+def test_dead_pending_bet_is_dropped(tmp_path):
+    # cekajici sazka, jejiz zapas davno probehl, se z reportu vyhodi
+    s = Store(tmp_path / "b.jsonl", tmp_path / "l.json")
+    s.update_line("m3", {"league":"soccer_x","league_tier":"liquid","home":"E","away":"F",
+                         "kickoff":"2026-07-01T00:00:00Z"}, {"H":.4,"D":.3,"A":.3})
+    s.add_bet({"match_id":"m3","outcome":"H","book":"unibet","price":2.0,"book_type":"soft",
+               "league":"soccer_x","league_tier":"liquid","home":"E","away":"F",
+               "kickoff":"2026-07-01T00:00:00Z","ts_detected":"2026-06-30T08:00:00Z","edge":0.05})
+    ctx = build_context(s, now=NOW)   # NOW = 2026-08-04, vykop 2026-07-01 => mrtva
+    assert ctx["dropped"] == 1
+    assert ctx["total_bets"] == 0
+    assert ctx["bets"] == []

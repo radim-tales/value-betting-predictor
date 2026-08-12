@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Value Betting Predictor - live</title>
+<title>Vyplácí se porovnávat kurzy - živý deník</title>
 <style>
   :root{
     --bg:#f7f4ee;--panel:#fffdf8;--ink:#2b2620;--ink-soft:#6b6357;
@@ -26,12 +26,12 @@
   .eyebrow{font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
   h1{font-size:clamp(1.9rem,4.5vw,2.6rem);line-height:1.1;margin:.35em 0 .1em;text-wrap:balance;font-weight:600}
   h2{font-size:1.26rem;margin:0 0 .2em;font-weight:600}
-  .sub{color:var(--ink-soft);font-size:1.02rem;max-width:62ch}
+  .sub{color:var(--ink-soft);font-size:1.02rem;max-width:64ch}
   header{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:30px}
   .stamp{margin-top:14px;font-size:.82rem;color:var(--ink-soft)}
   .stamp b{color:var(--teal)}
   section{margin:38px 0}
-  .lead-in{color:var(--ink-soft);max-width:66ch;margin:.2em 0 1.3em}
+  .lead-in{color:var(--ink-soft);max-width:70ch;margin:.2em 0 1.3em}
   .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
   .tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:var(--shadow)}
   .tile .k{font-size:2.1rem;line-height:1;font-weight:600}
@@ -56,176 +56,160 @@
   .note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--line-strong);
     border-radius:8px;padding:14px 18px;font-size:.9rem;color:var(--ink-soft);margin-top:14px}
   .note b{color:var(--ink)}
+  dl.gloss{margin:14px 0 0;display:grid;gap:8px;font-size:.88rem}
+  dl.gloss div{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  dl.gloss dt{font-weight:600;color:var(--ink);min-width:130px}
+  dl.gloss dd{margin:0;color:var(--ink-soft);max-width:64ch}
   ul.caveats{list-style:none;padding:0;margin:0;display:grid;gap:10px}
-  ul.caveats li{padding-left:22px;position:relative;color:var(--ink-soft);font-size:.92rem;max-width:72ch}
+  ul.caveats li{padding-left:22px;position:relative;color:var(--ink-soft);font-size:.92rem;max-width:74ch}
   ul.caveats li::before{content:"";position:absolute;left:4px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--rust)}
   footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:.8rem}
   code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:var(--line);padding:1px 6px;border-radius:5px}
-  .legend{display:flex;flex-wrap:wrap;gap:16px;margin:14px 0 4px;font-size:.82rem;color:var(--ink-soft)}
-  .legend span b{color:var(--ink);font-weight:600}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="eyebrow">Value Betting Predictor &middot; forward paper-trading</div>
-    <h1 class="serif">Line-shopping edge, živý deník</h1>
-    <p class="sub">Systém bere nejlepší cenu napříč knihami, kde překoná fér Pinnacle o&nbsp;≥3&nbsp;%,
-      a paper-tradinguje ji naživo. Tahle stránka se generuje po každém běhu cronu z reálného stavu.</p>
-    <p class="stamp">Aktualizováno: <b>12. 08. 2026 09:15 UTC</b> &middot; automaticky z <code>live_state/</code></p>
+    <div class="eyebrow">Value Betting Predictor &middot; živý test</div>
+    <h1 class="serif">Vyplácí se porovnávat kurzy? Živý deník sázek</h1>
+    <p class="sub">Systém prochází kurzy u víc sázkových kanceláří a vsadí tam, kde je nejlepší
+      kurz aspoň o&nbsp;3&nbsp;% výhodnější, než odpovídá férové pravděpodobnosti (tu bereme z Pinnacle,
+      nejostřejší kanceláře na trhu). Nesází se skutečné peníze - každá sázka je jen na papíře a jen se
+      zaznamenává, jak by dopadla. Stránka se přepisuje sama po každém automatickém běhu.</p>
+    <p class="stamp">Aktualizováno: <b>12. 08. 2026 12:30 UTC</b> &middot; automaticky, po každém běhu</p>
   </header>
 
   <section>
     <div class="eyebrow">Souhrn</div>
     <h2 class="serif" style="margin-top:6px">Kde jsme teď</h2>
-    <p class="lead-in">Sázka vzniká, když výsledek ještě neexistuje (anti-leak = čas). Bilance a P/L
-      jsou jen za dohrané sázky; jednotka = 1× sázka (flat staking). Verdikt padne až u ~100 settled
-      soft sázek.</p>
+    <p class="lead-in">Sázka se zapíše ve chvíli, kdy zápas ještě nezačal - systém nikdy nevidí výsledek
+      dopředu. Bilanci a zisk počítáme jen z už odehraných zápasů. Konečný verdikt bude dávat smysl
+      až u zhruba 100 dohraných sázek u běžných sázkovek.</p>
     <div class="tiles">
-      <div class="tile"><div class="k num">78</div><div class="l">sázek nalezeno celkem</div></div>
-      <div class="tile good"><div class="k num">30</div><div class="l">vyhodnoceno (dohráno)</div></div>
-      <div class="tile"><div class="k num">14-16</div><div class="l">bilance výhra-prohra</div></div>
-      <div class="tile"><div class="k num pos">+11,51 j.</div><div class="l">zisk/ztráta (flat 1j.)</div></div>
+      <div class="tile"><div class="k num">42</div><div class="l">sázek zapsáno celkem</div></div>
+      <div class="tile good"><div class="k num">30</div><div class="l">už dohráno</div></div>
+      <div class="tile"><div class="k num">14-16</div><div class="l">výher - proher</div></div>
+      <div class="tile"><div class="k num pos">+11,51 j.</div><div class="l">zisk / ztráta v jednotkách</div></div>
     </div>
-    <div class="note">Do 4.&nbsp;8.&nbsp;2026 harness kvůli bugu nesettloval; ~27 dohraných sázek je
-      z 3denního okna scores API nenávratně pryč. P/L za tak malé n je čirý šum - řídící metrika je CLV, ne zisk.</div>
+    <div class="note"><b>Co znamená „j.":</b> zisk je v jednotkách, kde jedna jednotka = jeden vklad
+      (na každou sázku vsázíme stejně). Kladné číslo = na papíře jsme vydělali tolik vkladů, záporné =
+      tolik jsme prodělali. <b>Pozor:</b> při takhle malém počtu sázek je zisk hlavně náhoda, ne signál -
+      spolehlivější je CLV níže.</div>
+    <div class="note">Kvůli staré chybě systém do 4.&nbsp;8.&nbsp;2026 zápasy nevyhodnocoval, takže dřívější
+      sázky zůstaly bez výsledku a už se nedopočítají (staré výsledky nejsou k dispozici). Takových sázek
+      bylo 36 a v deníku je proto nezobrazujeme.</div>
   </section>
 
   <section>
     <div class="eyebrow">Deník</div>
     <h2 class="serif" style="margin-top:6px">Kdy a na co systém vsadil</h2>
-    <p class="lead-in">Všechny nalezené sázky, čekající nahoře, dohrané dole. „Nalezeno" = kdy to systém
-      zachytil, „výkop" = začátek zápasu. Tip je strana, na kterou padla nejlepší cena.</p>
-    <div class="legend">
-      <span><b>Edge</b> = o kolik nejlepší cena překonává fér Pinnacle</span>
-      <span><b>CLV</b> = výnos kurzu vůči zavírací linii</span>
-      <span><b>P/L</b> = zisk v jednotkách (kurz-1 při výhře, -1 při prohře)</span>
-    </div>
+    <p class="lead-in">Všechny sázky - nahoře ty, u kterých se ještě čeká na výsledek, dole dohrané.
+      „Zachyceno" = kdy systém sázku našel, „výkop" = začátek zápasu, „tip" = na koho jsme vsadili.</p>
+    <dl class="gloss">
+      <div><dt>Kurz</dt><dd>nejlepší cena, kterou jsme napříč sázkovkami na daný tip našli.</dd></div>
+      <div><dt>Náskok</dt><dd>o kolik je náš kurz výhodnější, než odpovídá férové pravděpodobnosti z Pinnacle.</dd></div>
+      <div><dt>CLV</dt><dd>jestli byl náš kurz lepší než kurz těsně před výkopem - klíčové číslo, kladné = dobře.</dd></div>
+      <div><dt>Zisk</dt><dd>kolik jsme na sázce vydělali/prodělali v jednotkách (výhra = kurz-1, prohra = -1).</dd></div>
+    </dl>
     <div class="tbl-wrap">
       <table>
         <thead><tr>
-          <th>Nalezeno</th><th>Výkop</th><th>Liga</th><th>Zápas</th><th>Tip</th>
-          <th class="n">Kurz</th><th>Kniha</th><th class="n">Edge</th><th>Stav</th>
-          <th class="n">CLV</th><th class="n">P/L</th>
+          <th>Zachyceno</th><th>Výkop</th><th>Liga</th><th>Zápas</th><th>Tip</th>
+          <th class="n">Kurz</th><th>Kde sázíme</th><th class="n">Náskok</th><th>Stav</th>
+          <th class="n">CLV</th><th class="n">Zisk</th>
         </tr></thead>
         <tbody>
-<tr><td class="num muted">22.07. 20:54</td><td class="num muted">22.07. 22:30</td><td>Brazílie Série A</td><td>Coritiba – Palmeiras</td><td><b>Coritiba</b></td><td class="n num">4.40</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+3,04 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">22.07. 08:31</td><td class="num muted">23.07. 22:30</td><td>Brazílie Série A</td><td>Botafogo – Vitoria</td><td><b>remíza</b></td><td class="n num">3.90</td><td>ladbrokes_uk <span class="pill soft">soft</span></td><td class="n num">+6,51 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">22.07. 08:31</td><td class="num muted">23.07. 22:30</td><td>Brazílie Série A</td><td>Corinthians – Remo</td><td><b>Remo</b></td><td class="n num">8.00</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+8,76 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">22.07. 20:54</td><td class="num muted">23.07. 22:30</td><td>Brazílie Série A</td><td>Botafogo – Vitoria</td><td><b>remíza</b></td><td class="n num">3.90</td><td>coral <span class="pill soft">soft</span></td><td class="n num">+6,51 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">23.07. 10:26</td><td class="num muted">23.07. 22:30</td><td>Brazílie Série A</td><td>Botafogo – Vitoria</td><td><b>remíza</b></td><td class="n num">3.85</td><td>betfair_ex_uk <span class="pill ex">burza</span></td><td class="n num">+3,11 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">22.07. 08:31</td><td class="num muted">25.07. 13:00</td><td>Superettan</td><td>IFK Värnamo – IK Brage</td><td><b>IK Brage</b></td><td class="n num">3.50</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+5,31 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">25.07. 20:39</td><td class="num muted">25.07. 21:30</td><td>Brazílie Série A</td><td>Santos – Chapecoense</td><td><b>remíza</b></td><td class="n num">5.80</td><td>smarkets <span class="pill soft">soft</span></td><td class="n num">+3,27 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">22.07. 20:54</td><td class="num muted">26.07. 11:00</td><td>Superettan</td><td>GIF Sundsvall – Falkenbergs FF</td><td><b>GIF Sundsvall</b></td><td class="n num">3.60</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+12,06 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">24.07. 20:54</td><td class="num muted">26.07. 11:00</td><td>Superettan</td><td>GIF Sundsvall – Falkenbergs FF</td><td><b>GIF Sundsvall</b></td><td class="n num">3.95</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+5,47 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">22.07. 08:31</td><td class="num muted">26.07. 13:00</td><td>Superettan</td><td>Ljungskile SK – Sandvikens IF</td><td><b>Ljungskile SK</b></td><td class="n num">2.10</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+3,15 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">22.07. 08:31</td><td class="num muted">26.07. 15:00</td><td>Superettan</td><td>Norrby IF – Östersunds FK</td><td><b>Östersunds FK</b></td><td class="n num">2.60</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+6,15 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">24.07. 20:54</td><td class="num muted">26.07. 15:00</td><td>Superettan</td><td>Norrby IF – Östersunds FK</td><td><b>Norrby IF</b></td><td class="n num">3.20</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+3,17 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">24.07. 10:22</td><td class="num muted">26.07. 19:00</td><td>Brazílie Série A</td><td>Cruzeiro – Botafogo</td><td><b>Botafogo</b></td><td class="n num">5.00</td><td>betfair_ex_uk <span class="pill ex">burza</span></td><td class="n num">+3,03 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">24.07. 20:54</td><td class="num muted">26.07. 19:00</td><td>Brazílie Série A</td><td>Cruzeiro – Botafogo</td><td><b>Botafogo</b></td><td class="n num">5.00</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+3,23 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">23.07. 10:26</td><td class="num muted">26.07. 21:30</td><td>Brazílie Série A</td><td>Flamengo – Sao Paulo</td><td><b>Sao Paulo</b></td><td class="n num">7.60</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+6,44 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">26.07. 20:44</td><td class="num muted">26.07. 21:30</td><td>Brazílie Série A</td><td>Bragantino-SP – Coritiba</td><td><b>Coritiba</b></td><td class="n num">6.40</td><td>smarkets <span class="pill soft">soft</span></td><td class="n num">+5,52 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">24.07. 10:22</td><td class="num muted">26.07. 22:30</td><td>Brazílie Série A</td><td>Remo – Vitoria</td><td><b>Vitoria</b></td><td class="n num">3.55</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+6,77 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">23.07. 20:50</td><td class="num muted">27.07. 17:00</td><td>Superettan</td><td>Örebro SK – IK Oddevold</td><td><b>Örebro SK</b></td><td class="n num">3.10</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+9,72 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">22.07. 08:31</td><td class="num muted">27.07. 17:05</td><td>Superettan</td><td>Östers IF – Varbergs BoIS</td><td><b>Varbergs BoIS</b></td><td class="n num">2.61</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+6,73 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">22.07. 20:54</td><td class="num muted">28.07. 17:00</td><td>Superettan</td><td>Helsingborgs IF – Nordic United FC</td><td><b>Helsingborgs IF</b></td><td class="n num">2.55</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+4,43 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">23.07. 10:26</td><td class="num muted">28.07. 17:00</td><td>Superettan</td><td>Helsingborgs IF – Nordic United FC</td><td><b>Nordic United FC</b></td><td class="n num">3.30</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+5,09 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">25.07. 09:52</td><td class="num muted">28.07. 17:00</td><td>Superettan</td><td>Landskrona BoIS – IFK Norrkoping</td><td><b>IFK Norrkoping</b></td><td class="n num">2.23</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+4,02 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">27.07. 11:28</td><td class="num muted">28.07. 17:00</td><td>Superettan</td><td>Helsingborgs IF – Nordic United FC</td><td><b>remíza</b></td><td class="n num">3.80</td><td>betfair_ex_uk <span class="pill ex">burza</span></td><td class="n num">+3,70 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">27.07. 11:28</td><td class="num muted">28.07. 17:00</td><td>Superettan</td><td>Landskrona BoIS – IFK Norrkoping</td><td><b>IFK Norrkoping</b></td><td class="n num">2.15</td><td>unibet_uk <span class="pill soft">soft</span></td><td class="n num">+4,04 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">27.07. 16:06</td><td class="num muted">28.07. 17:00</td><td>Superettan</td><td>Landskrona BoIS – IFK Norrkoping</td><td><b>Landskrona BoIS</b></td><td class="n num">3.55</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+5,90 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">27.07. 21:01</td><td class="num muted">28.07. 17:00</td><td>Superettan</td><td>Landskrona BoIS – IFK Norrkoping</td><td><b>Landskrona BoIS</b></td><td class="n num">3.50</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+3,34 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">27.07. 11:28</td><td class="num muted">29.07. 22:30</td><td>Brazílie Série A</td><td>Internacional – Flamengo</td><td><b>Internacional</b></td><td class="n num">4.30</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+5,45 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">27.07. 11:28</td><td class="num muted">29.07. 22:30</td><td>Brazílie Série A</td><td>Mirassol – Remo</td><td><b>Remo</b></td><td class="n num">5.50</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+4,20 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">27.07. 16:06</td><td class="num muted">29.07. 22:30</td><td>Brazílie Série A</td><td>Mirassol – Remo</td><td><b>Remo</b></td><td class="n num">5.70</td><td>betfair_ex_uk <span class="pill ex">burza</span></td><td class="n num">+7,99 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">28.07. 10:39</td><td class="num muted">29.07. 22:30</td><td>Brazílie Série A</td><td>Mirassol – Remo</td><td><b>Remo</b></td><td class="n num">5.60</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+6,09 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">27.07. 21:01</td><td class="num muted">30.07. 00:30</td><td>Brazílie Série A</td><td>Vitoria – Palmeiras</td><td><b>remíza</b></td><td class="n num">3.55</td><td>betfair_ex_uk <span class="pill ex">burza</span></td><td class="n num">+3,66 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">29.07. 20:42</td><td class="num muted">30.07. 22:30</td><td>Brazílie Série A</td><td>Corinthians – Atletico Paranaense</td><td><b>Atletico Paranaense</b></td><td class="n num">4.90</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+3,99 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">28.07. 15:57</td><td class="num muted">31.07. 00:30</td><td>Brazílie Série A</td><td>Coritiba – Cruzeiro</td><td><b>Coritiba</b></td><td class="n num">3.65</td><td>betfair_ex_uk <span class="pill ex">burza</span></td><td class="n num">+3,97 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">27.07. 21:01</td><td class="num muted">31.07. 17:00</td><td>Superettan</td><td>IK Oddevold – Norrby IF</td><td><b>Norrby IF</b></td><td class="n num">5.20</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+3,70 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">28.07. 15:57</td><td class="num muted">31.07. 17:00</td><td>Superettan</td><td>IK Oddevold – Norrby IF</td><td><b>IK Oddevold</b></td><td class="n num">1.82</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+3,27 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">31.07. 15:53</td><td class="num muted">31.07. 17:00</td><td>Superettan</td><td>IK Oddevold – Norrby IF</td><td><b>Norrby IF</b></td><td class="n num">5.10</td><td>virginbet <span class="pill soft">soft</span></td><td class="n num">+3,46 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">10.08. 14:49</td><td class="num muted">14.08. 17:00</td><td>Superettan</td><td>Landskrona BoIS – IK Oddevold</td><td><b>IK Oddevold</b></td><td class="n num">3.10</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+8,95 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">11.08. 09:01</td><td class="num muted">14.08. 17:00</td><td>Superettan</td><td>Landskrona BoIS – IK Oddevold</td><td><b>Landskrona BoIS</b></td><td class="n num">2.55</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+4,94 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">08.08. 14:21</td><td class="num muted">15.08. 11:00</td><td>Superettan</td><td>Ljungskile SK – Östers IF</td><td><b>Ljungskile SK</b></td><td class="n num">2.05</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+6,83 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">10.08. 14:49</td><td class="num muted">15.08. 11:00</td><td>Superettan</td><td>Ljungskile SK – Östers IF</td><td><b>Ljungskile SK</b></td><td class="n num">2.07</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+5,20 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">11.08. 14:49</td><td class="num muted">15.08. 11:00</td><td>Superettan</td><td>Ljungskile SK – Östers IF</td><td><b>remíza</b></td><td class="n num">3.80</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+9,06 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">11.08. 20:32</td><td class="num muted">15.08. 15:00</td><td>Superettan</td><td>Falkenbergs FF – Norrby IF</td><td><b>Norrby IF</b></td><td class="n num">4.35</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+4,65 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">09.08. 20:18</td><td class="num muted">15.08. 19:30</td><td>Brazílie Série A</td><td>Fluminense – Palmeiras</td><td><b>Fluminense</b></td><td class="n num">2.92</td><td>nordicbet <span class="pill soft">soft</span></td><td class="n num">+3,26 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">12.08. 09:15</td><td class="num muted">15.08. 21:30</td><td>Brazílie Série A</td><td>Atletico Paranaense – Bragantino-SP</td><td><b>remíza</b></td><td class="n num">3.50</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+3,58 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">11.08. 09:01</td><td class="num muted">16.08. 00:00</td><td>Brazílie Série A</td><td>Sao Paulo – Coritiba</td><td><b>Coritiba</b></td><td class="n num">5.40</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+6,34 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">12.08. 09:15</td><td class="num muted">16.08. 00:00</td><td>Brazílie Série A</td><td>Sao Paulo – Coritiba</td><td><b>Coritiba</b></td><td class="n num">5.25</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+3,38 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">12.08. 09:15</td><td class="num muted">16.08. 11:00</td><td>Superettan</td><td>IFK Värnamo – Östersunds FK</td><td><b>Östersunds FK</b></td><td class="n num">2.95</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+9,02 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">10.08. 09:26</td><td class="num muted">16.08. 21:30</td><td>Brazílie Série A</td><td>Vitoria – Botafogo</td><td><b>remíza</b></td><td class="n num">3.35</td><td>nordicbet <span class="pill soft">soft</span></td><td class="n num">+3,63 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
-<tr><td class="num muted">31.07. 15:53</td><td class="num muted">01.08. 11:00</td><td>Superettan</td><td>Östersunds FK – Östers IF</td><td><b>Östers IF</b></td><td class="n num">3.70</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+4,02 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-9,12 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">01.08. 10:02</td><td class="num muted">01.08. 11:00</td><td>Superettan</td><td>Östersunds FK – Östers IF</td><td><b>Östersunds FK</b></td><td class="n num">2.05</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+5,77 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+5,77 %</td><td class="n num pos">+1,05</td></tr>
-<tr><td class="num muted">27.07. 21:01</td><td class="num muted">01.08. 13:00</td><td>Superettan</td><td>Varbergs BoIS – Falkenbergs FF</td><td><b>Falkenbergs FF</b></td><td class="n num">4.00</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+10,91 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+10,35 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">27.07. 21:01</td><td class="num muted">01.08. 13:00</td><td>Superettan</td><td>Sandvikens IF – GIF Sundsvall</td><td><b>Sandvikens IF</b></td><td class="n num">1.76</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+3,33 %</td><td><span class="pill win">výhra</span></td><td class="n num neg">-0,76 %</td><td class="n num pos">+0,76</td></tr>
-<tr><td class="num muted">31.07. 10:42</td><td class="num muted">01.08. 15:00</td><td>Superettan</td><td>IFK Norrkoping – Helsingborgs IF</td><td><b>Helsingborgs IF</b></td><td class="n num">5.50</td><td>betfair_sb_uk <span class="pill soft">soft</span></td><td class="n num">+5,54 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-1,44 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">01.08. 14:51</td><td class="num muted">01.08. 15:00</td><td>Superettan</td><td>IK Brage – Landskrona BoIS</td><td><b>remíza</b></td><td class="n num">3.75</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+5,53 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+5,53 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">28.07. 15:57</td><td class="num muted">03.08. 17:05</td><td>Superettan</td><td>Örebro SK – IFK Värnamo</td><td><b>Örebro SK</b></td><td class="n num">2.31</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+4,33 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-13,47 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">03.08. 16:13</td><td class="num muted">03.08. 17:05</td><td>Superettan</td><td>Örebro SK – IFK Värnamo</td><td><b>IFK Värnamo</b></td><td class="n num">3.00</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+4,37 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+4,37 %</td><td class="n num pos">+2,00</td></tr>
-<tr><td class="num muted">02.08. 10:00</td><td class="num muted">07.08. 17:00</td><td>Superettan</td><td>Östersunds FK – GIF Sundsvall</td><td><b>Östersunds FK</b></td><td class="n num">1.62</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+3,52 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+9,77 %</td><td class="n num pos">+0,62</td></tr>
-<tr><td class="num muted">04.08. 07:07</td><td class="num muted">08.08. 11:00</td><td>Superettan</td><td>Falkenbergs FF – Nordic United FC</td><td><b>Nordic United FC</b></td><td class="n num">3.55</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+5,92 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+8,13 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">04.08. 07:07</td><td class="num muted">08.08. 11:00</td><td>Superettan</td><td>Ljungskile SK – IK Oddevold</td><td><b>IK Oddevold</b></td><td class="n num">2.95</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+3,62 %</td><td><span class="pill win">výhra</span></td><td class="n num neg">-7,34 %</td><td class="n num pos">+1,95</td></tr>
-<tr><td class="num muted">04.08. 07:07</td><td class="num muted">08.08. 13:00</td><td>Superettan</td><td>Östers IF – Landskrona BoIS</td><td><b>Landskrona BoIS</b></td><td class="n num">3.10</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+9,76 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+21,86 %</td><td class="n num pos">+2,10</td></tr>
-<tr><td class="num muted">01.08. 20:39</td><td class="num muted">08.08. 15:00</td><td>Superettan</td><td>IFK Norrkoping – IK Brage</td><td><b>IK Brage</b></td><td class="n num">5.75</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+8,31 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+1,87 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">04.08. 07:07</td><td class="num muted">08.08. 15:00</td><td>Superettan</td><td>IFK Norrkoping – IK Brage</td><td><b>IK Brage</b></td><td class="n num">6.00</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+3,98 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+6,30 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">31.07. 10:42</td><td class="num muted">08.08. 23:30</td><td>Brazílie Série A</td><td>Coritiba – Chapecoense</td><td><b>Chapecoense</b></td><td class="n num">5.75</td><td>coral <span class="pill soft">soft</span></td><td class="n num">+9,39 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-8,13 %</td><td class="n num neg">-1,00</td></tr>
+<tr><td class="num muted">10.08. 14:49</td><td class="num muted">14.08. 17:00</td><td>Švédsko Superettan</td><td>Landskrona BoIS – IK Oddevold</td><td><b>IK Oddevold</b></td><td class="n num">3.10</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+8,95 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
+<tr><td class="num muted">11.08. 09:01</td><td class="num muted">14.08. 17:00</td><td>Švédsko Superettan</td><td>Landskrona BoIS – IK Oddevold</td><td><b>Landskrona BoIS</b></td><td class="n num">2.55</td><td>unibet_se <span class="pill soft">sázkovka</span></td><td class="n num">+4,94 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
+<tr><td class="num muted">08.08. 14:21</td><td class="num muted">15.08. 11:00</td><td>Švédsko Superettan</td><td>Ljungskile SK – Östers IF</td><td><b>Ljungskile SK</b></td><td class="n num">2.05</td><td>unibet_se <span class="pill soft">sázkovka</span></td><td class="n num">+6,83 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
+<tr><td class="num muted">10.08. 14:49</td><td class="num muted">15.08. 11:00</td><td>Švédsko Superettan</td><td>Ljungskile SK – Östers IF</td><td><b>Ljungskile SK</b></td><td class="n num">2.07</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+5,20 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
+<tr><td class="num muted">11.08. 14:49</td><td class="num muted">15.08. 11:00</td><td>Švédsko Superettan</td><td>Ljungskile SK – Östers IF</td><td><b>remíza</b></td><td class="n num">3.80</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+9,06 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
+<tr><td class="num muted">11.08. 20:32</td><td class="num muted">15.08. 15:00</td><td>Švédsko Superettan</td><td>Falkenbergs FF – Norrby IF</td><td><b>Norrby IF</b></td><td class="n num">4.35</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+4,65 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
+<tr><td class="num muted">09.08. 20:18</td><td class="num muted">15.08. 19:30</td><td>Brazílie Série A</td><td>Fluminense – Palmeiras</td><td><b>Fluminense</b></td><td class="n num">2.92</td><td>nordicbet <span class="pill soft">sázkovka</span></td><td class="n num">+3,26 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
+<tr><td class="num muted">12.08. 09:15</td><td class="num muted">15.08. 21:30</td><td>Brazílie Série A</td><td>Atletico Paranaense – Bragantino-SP</td><td><b>remíza</b></td><td class="n num">3.50</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+3,58 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
+<tr><td class="num muted">11.08. 09:01</td><td class="num muted">16.08. 00:00</td><td>Brazílie Série A</td><td>Sao Paulo – Coritiba</td><td><b>Coritiba</b></td><td class="n num">5.40</td><td>unibet_se <span class="pill soft">sázkovka</span></td><td class="n num">+6,34 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
+<tr><td class="num muted">12.08. 09:15</td><td class="num muted">16.08. 00:00</td><td>Brazílie Série A</td><td>Sao Paulo – Coritiba</td><td><b>Coritiba</b></td><td class="n num">5.25</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+3,38 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
+<tr><td class="num muted">12.08. 09:15</td><td class="num muted">16.08. 11:00</td><td>Švédsko Superettan</td><td>IFK Värnamo – Östersunds FK</td><td><b>Östersunds FK</b></td><td class="n num">2.95</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+9,02 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
+<tr><td class="num muted">10.08. 09:26</td><td class="num muted">16.08. 21:30</td><td>Brazílie Série A</td><td>Vitoria – Botafogo</td><td><b>remíza</b></td><td class="n num">3.35</td><td>nordicbet <span class="pill soft">sázkovka</span></td><td class="n num">+3,63 %</td><td><span class="pill wait">čeká</span></td><td class="n num ">-</td><td class="n num ">-</td></tr>
+<tr><td class="num muted">31.07. 15:53</td><td class="num muted">01.08. 11:00</td><td>Švédsko Superettan</td><td>Östersunds FK – Östers IF</td><td><b>Östers IF</b></td><td class="n num">3.70</td><td>unibet_se <span class="pill soft">sázkovka</span></td><td class="n num">+4,02 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-9,12 %</td><td class="n num neg">-1,00</td></tr>
+<tr><td class="num muted">01.08. 10:02</td><td class="num muted">01.08. 11:00</td><td>Švédsko Superettan</td><td>Östersunds FK – Östers IF</td><td><b>Östersunds FK</b></td><td class="n num">2.05</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+5,77 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+5,77 %</td><td class="n num pos">+1,05</td></tr>
+<tr><td class="num muted">27.07. 21:01</td><td class="num muted">01.08. 13:00</td><td>Švédsko Superettan</td><td>Varbergs BoIS – Falkenbergs FF</td><td><b>Falkenbergs FF</b></td><td class="n num">4.00</td><td>unibet_se <span class="pill soft">sázkovka</span></td><td class="n num">+10,91 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+10,35 %</td><td class="n num neg">-1,00</td></tr>
+<tr><td class="num muted">27.07. 21:01</td><td class="num muted">01.08. 13:00</td><td>Švédsko Superettan</td><td>Sandvikens IF – GIF Sundsvall</td><td><b>Sandvikens IF</b></td><td class="n num">1.76</td><td>unibet_se <span class="pill soft">sázkovka</span></td><td class="n num">+3,33 %</td><td><span class="pill win">výhra</span></td><td class="n num neg">-0,76 %</td><td class="n num pos">+0,76</td></tr>
+<tr><td class="num muted">31.07. 10:42</td><td class="num muted">01.08. 15:00</td><td>Švédsko Superettan</td><td>IFK Norrkoping – Helsingborgs IF</td><td><b>Helsingborgs IF</b></td><td class="n num">5.50</td><td>betfair_sb_uk <span class="pill soft">sázkovka</span></td><td class="n num">+5,54 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-1,44 %</td><td class="n num neg">-1,00</td></tr>
+<tr><td class="num muted">01.08. 14:51</td><td class="num muted">01.08. 15:00</td><td>Švédsko Superettan</td><td>IK Brage – Landskrona BoIS</td><td><b>remíza</b></td><td class="n num">3.75</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+5,53 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+5,53 %</td><td class="n num neg">-1,00</td></tr>
+<tr><td class="num muted">28.07. 15:57</td><td class="num muted">03.08. 17:05</td><td>Švédsko Superettan</td><td>Örebro SK – IFK Värnamo</td><td><b>Örebro SK</b></td><td class="n num">2.31</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+4,33 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-13,47 %</td><td class="n num neg">-1,00</td></tr>
+<tr><td class="num muted">03.08. 16:13</td><td class="num muted">03.08. 17:05</td><td>Švédsko Superettan</td><td>Örebro SK – IFK Värnamo</td><td><b>IFK Värnamo</b></td><td class="n num">3.00</td><td>unibet_se <span class="pill soft">sázkovka</span></td><td class="n num">+4,37 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+4,37 %</td><td class="n num pos">+2,00</td></tr>
+<tr><td class="num muted">02.08. 10:00</td><td class="num muted">07.08. 17:00</td><td>Švédsko Superettan</td><td>Östersunds FK – GIF Sundsvall</td><td><b>Östersunds FK</b></td><td class="n num">1.62</td><td>unibet_se <span class="pill soft">sázkovka</span></td><td class="n num">+3,52 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+9,77 %</td><td class="n num pos">+0,62</td></tr>
+<tr><td class="num muted">04.08. 07:07</td><td class="num muted">08.08. 11:00</td><td>Švédsko Superettan</td><td>Falkenbergs FF – Nordic United FC</td><td><b>Nordic United FC</b></td><td class="n num">3.55</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+5,92 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+8,13 %</td><td class="n num neg">-1,00</td></tr>
+<tr><td class="num muted">04.08. 07:07</td><td class="num muted">08.08. 11:00</td><td>Švédsko Superettan</td><td>Ljungskile SK – IK Oddevold</td><td><b>IK Oddevold</b></td><td class="n num">2.95</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+3,62 %</td><td><span class="pill win">výhra</span></td><td class="n num neg">-7,34 %</td><td class="n num pos">+1,95</td></tr>
+<tr><td class="num muted">04.08. 07:07</td><td class="num muted">08.08. 13:00</td><td>Švédsko Superettan</td><td>Östers IF – Landskrona BoIS</td><td><b>Landskrona BoIS</b></td><td class="n num">3.10</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+9,76 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+21,86 %</td><td class="n num pos">+2,10</td></tr>
+<tr><td class="num muted">01.08. 20:39</td><td class="num muted">08.08. 15:00</td><td>Švédsko Superettan</td><td>IFK Norrkoping – IK Brage</td><td><b>IK Brage</b></td><td class="n num">5.75</td><td>unibet_se <span class="pill soft">sázkovka</span></td><td class="n num">+8,31 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+1,87 %</td><td class="n num neg">-1,00</td></tr>
+<tr><td class="num muted">04.08. 07:07</td><td class="num muted">08.08. 15:00</td><td>Švédsko Superettan</td><td>IFK Norrkoping – IK Brage</td><td><b>IK Brage</b></td><td class="n num">6.00</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+3,98 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+6,30 %</td><td class="n num neg">-1,00</td></tr>
+<tr><td class="num muted">31.07. 10:42</td><td class="num muted">08.08. 23:30</td><td>Brazílie Série A</td><td>Coritiba – Chapecoense</td><td><b>Chapecoense</b></td><td class="n num">5.75</td><td>coral <span class="pill soft">sázkovka</span></td><td class="n num">+9,39 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-8,13 %</td><td class="n num neg">-1,00</td></tr>
 <tr><td class="num muted">06.08. 10:42</td><td class="num muted">08.08. 23:30</td><td>Brazílie Série A</td><td>Coritiba – Chapecoense</td><td><b>Chapecoense</b></td><td class="n num">6.20</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+6,55 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-0,93 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">31.07. 10:42</td><td class="num muted">09.08. 00:00</td><td>Brazílie Série A</td><td>Botafogo – Fluminense</td><td><b>remíza</b></td><td class="n num">3.40</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+6,96 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+0,02 %</td><td class="n num pos">+2,40</td></tr>
-<tr><td class="num muted">01.08. 20:39</td><td class="num muted">09.08. 00:00</td><td>Brazílie Série A</td><td>Botafogo – Fluminense</td><td><b>remíza</b></td><td class="n num">3.40</td><td>coolbet <span class="pill soft">soft</span></td><td class="n num">+6,47 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+0,02 %</td><td class="n num pos">+2,40</td></tr>
-<tr><td class="num muted">06.08. 10:42</td><td class="num muted">09.08. 00:00</td><td>Brazílie Série A</td><td>Botafogo – Fluminense</td><td><b>remíza</b></td><td class="n num">3.40</td><td>ladbrokes_uk <span class="pill soft">soft</span></td><td class="n num">+4,78 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+0,02 %</td><td class="n num pos">+2,40</td></tr>
+<tr><td class="num muted">31.07. 10:42</td><td class="num muted">09.08. 00:00</td><td>Brazílie Série A</td><td>Botafogo – Fluminense</td><td><b>remíza</b></td><td class="n num">3.40</td><td>unibet_se <span class="pill soft">sázkovka</span></td><td class="n num">+6,96 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+0,02 %</td><td class="n num pos">+2,40</td></tr>
+<tr><td class="num muted">01.08. 20:39</td><td class="num muted">09.08. 00:00</td><td>Brazílie Série A</td><td>Botafogo – Fluminense</td><td><b>remíza</b></td><td class="n num">3.40</td><td>coolbet <span class="pill soft">sázkovka</span></td><td class="n num">+6,47 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+0,02 %</td><td class="n num pos">+2,40</td></tr>
+<tr><td class="num muted">06.08. 10:42</td><td class="num muted">09.08. 00:00</td><td>Brazílie Série A</td><td>Botafogo – Fluminense</td><td><b>remíza</b></td><td class="n num">3.40</td><td>ladbrokes_uk <span class="pill soft">sázkovka</span></td><td class="n num">+4,78 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+0,02 %</td><td class="n num pos">+2,40</td></tr>
 <tr><td class="num muted">07.08. 14:44</td><td class="num muted">09.08. 00:00</td><td>Brazílie Série A</td><td>Botafogo – Fluminense</td><td><b>remíza</b></td><td class="n num">3.40</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+3,66 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+0,02 %</td><td class="n num pos">+2,40</td></tr>
 <tr><td class="num muted">07.08. 20:28</td><td class="num muted">09.08. 00:00</td><td>Brazílie Série A</td><td>Botafogo – Fluminense</td><td><b>remíza</b></td><td class="n num">3.40</td><td>betfair_ex_uk <span class="pill ex">burza</span></td><td class="n num">+3,09 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+0,02 %</td><td class="n num pos">+2,40</td></tr>
-<tr><td class="num muted">03.08. 16:13</td><td class="num muted">09.08. 13:00</td><td>Superettan</td><td>Varbergs BoIS – Sandvikens IF</td><td><b>Sandvikens IF</b></td><td class="n num">4.40</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+9,36 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+4,72 %</td><td class="n num pos">+3,40</td></tr>
+<tr><td class="num muted">03.08. 16:13</td><td class="num muted">09.08. 13:00</td><td>Švédsko Superettan</td><td>Varbergs BoIS – Sandvikens IF</td><td><b>Sandvikens IF</b></td><td class="n num">4.40</td><td>unibet_se <span class="pill soft">sázkovka</span></td><td class="n num">+9,36 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+4,72 %</td><td class="n num pos">+3,40</td></tr>
 <tr><td class="num muted">08.08. 14:21</td><td class="num muted">09.08. 14:00</td><td>Brazílie Série A</td><td>Cruzeiro – Mirassol</td><td><b>Mirassol</b></td><td class="n num">5.90</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+3,17 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+4,05 %</td><td class="n num neg">-1,00</td></tr>
 <tr><td class="num muted">31.07. 10:42</td><td class="num muted">09.08. 19:00</td><td>Brazílie Série A</td><td>Bahia – Vasco da Gama</td><td><b>Vasco da Gama</b></td><td class="n num">4.50</td><td>betfair_ex_uk <span class="pill ex">burza</span></td><td class="n num">+9,29 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+13,70 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">31.07. 10:42</td><td class="num muted">09.08. 19:00</td><td>Brazílie Série A</td><td>Palmeiras – Internacional</td><td><b>Internacional</b></td><td class="n num">6.50</td><td>betfair_sb_uk <span class="pill soft">soft</span></td><td class="n num">+4,09 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-7,24 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">31.07. 15:53</td><td class="num muted">09.08. 19:00</td><td>Brazílie Série A</td><td>Palmeiras – Internacional</td><td><b>Internacional</b></td><td class="n num">6.50</td><td>paddypower <span class="pill soft">soft</span></td><td class="n num">+4,09 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-7,24 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">01.08. 10:02</td><td class="num muted">09.08. 19:00</td><td>Brazílie Série A</td><td>Bahia – Vasco da Gama</td><td><b>Vasco da Gama</b></td><td class="n num">4.33</td><td>coral <span class="pill soft">soft</span></td><td class="n num">+5,16 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+9,41 %</td><td class="n num neg">-1,00</td></tr>
+<tr><td class="num muted">31.07. 10:42</td><td class="num muted">09.08. 19:00</td><td>Brazílie Série A</td><td>Palmeiras – Internacional</td><td><b>Internacional</b></td><td class="n num">6.50</td><td>betfair_sb_uk <span class="pill soft">sázkovka</span></td><td class="n num">+4,09 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-7,24 %</td><td class="n num neg">-1,00</td></tr>
+<tr><td class="num muted">31.07. 15:53</td><td class="num muted">09.08. 19:00</td><td>Brazílie Série A</td><td>Palmeiras – Internacional</td><td><b>Internacional</b></td><td class="n num">6.50</td><td>paddypower <span class="pill soft">sázkovka</span></td><td class="n num">+4,09 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-7,24 %</td><td class="n num neg">-1,00</td></tr>
+<tr><td class="num muted">01.08. 10:02</td><td class="num muted">09.08. 19:00</td><td>Brazílie Série A</td><td>Bahia – Vasco da Gama</td><td><b>Vasco da Gama</b></td><td class="n num">4.33</td><td>coral <span class="pill soft">sázkovka</span></td><td class="n num">+5,16 %</td><td><span class="pill loss">prohra</span></td><td class="n num pos">+9,41 %</td><td class="n num neg">-1,00</td></tr>
 <tr><td class="num muted">06.08. 10:42</td><td class="num muted">09.08. 19:00</td><td>Brazílie Série A</td><td>Palmeiras – Internacional</td><td><b>Internacional</b></td><td class="n num">6.80</td><td>matchbook <span class="pill ex">burza</span></td><td class="n num">+6,46 %</td><td><span class="pill loss">prohra</span></td><td class="n num neg">-2,96 %</td><td class="n num neg">-1,00</td></tr>
-<tr><td class="num muted">05.08. 15:53</td><td class="num muted">10.08. 17:00</td><td>Superettan</td><td>Norrby IF – Örebro SK</td><td><b>Norrby IF</b></td><td class="n num">2.43</td><td>unibet_se <span class="pill soft">soft</span></td><td class="n num">+3,10 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+1,47 %</td><td class="n num pos">+1,43</td></tr>
-<tr><td class="num muted">03.08. 20:53</td><td class="num muted">11.08. 17:00</td><td>Superettan</td><td>Helsingborgs IF – IFK Värnamo</td><td><b>IFK Värnamo</b></td><td class="n num">3.20</td><td>nordicbet <span class="pill soft">soft</span></td><td class="n num">+4,97 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+16,10 %</td><td class="n num pos">+2,20</td></tr>
+<tr><td class="num muted">05.08. 15:53</td><td class="num muted">10.08. 17:00</td><td>Švédsko Superettan</td><td>Norrby IF – Örebro SK</td><td><b>Norrby IF</b></td><td class="n num">2.43</td><td>unibet_se <span class="pill soft">sázkovka</span></td><td class="n num">+3,10 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+1,47 %</td><td class="n num pos">+1,43</td></tr>
+<tr><td class="num muted">03.08. 20:53</td><td class="num muted">11.08. 17:00</td><td>Švédsko Superettan</td><td>Helsingborgs IF – IFK Värnamo</td><td><b>IFK Värnamo</b></td><td class="n num">3.20</td><td>nordicbet <span class="pill soft">sázkovka</span></td><td class="n num">+4,97 %</td><td><span class="pill win">výhra</span></td><td class="n num pos">+16,10 %</td><td class="n num pos">+2,20</td></tr>
         </tbody>
       </table>
     </div>
   </section>
 
   <section>
-    <div class="eyebrow">Agregace</div>
-    <h2 class="serif" style="margin-top:6px">CLV podle typu knihy</h2>
-    <p class="lead-in">Verdikt = 90% bootstrap CI soft-knih celé nad nulou. Dokud je n malé, ber to jako
-      sanity check, ne signál.</p>
+    <div class="eyebrow">Přehled</div>
+    <h2 class="serif" style="margin-top:6px">Jak si CLV vede podle místa a ligy</h2>
+    <p class="lead-in">Každá sázka patří do skupiny podle dvou věcí: <b>kde</b> jsme kurz vzali a <b>jak
+      sledovaná</b> je daná liga. Proto jsou tady dva samostatné sloupce. Verdikt padne, až bude celé
+      95% rozpětí CLV u běžných sázkovek nad nulou. Dokud je sázek málo, ber to jen jako kontrolu, ne důkaz.</p>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>Typ &middot; liga</th><th class="n">n</th><th class="n">výhry</th>
-          <th class="n">CLV</th><th>95% CI (CLV)</th><th class="n">ROI</th></tr></thead>
+        <thead><tr><th>Kde sázíme</th><th>Liga</th><th class="n">Sázek</th><th class="n">Výher</th>
+          <th class="n">CLV (průměr)</th><th>Rozpětí CLV (95 %)</th><th class="n">ROI</th></tr></thead>
         <tbody>
-<tr><td><span class="pill ex">burza</span> likvidní</td><td class="n num">6</td><td class="n num">2</td><td class="n num pos">+2,32 %</td><td class="num">[-0,81 % ; +6,36 %]</td><td class="n num">+13,33 %</td></tr>
-<tr><td><span class="pill ex">burza</span> zanedbaná</td><td class="n num">1</td><td class="n num">0</td><td class="n num pos">+5,53 %</td><td class="num">jen 1 sázka</td><td class="n num">-100,00 %</td></tr>
-<tr><td><span class="pill soft">soft</span> likvidní</td><td class="n num">7</td><td class="n num">3</td><td class="n num neg">-1,88 %</td><td class="num">[-5,42 % ; +1,84 %]</td><td class="n num">+45,71 %</td></tr>
-<tr><td><span class="pill soft">soft</span> zanedbaná</td><td class="n num">16</td><td class="n num">9</td><td class="n num pos">+3,66 %</td><td class="num">[+0,17 % ; +7,37 %]</td><td class="n num">+53,19 %</td></tr>
+<tr><td><span class="pill ex">Sázková burza</span></td><td>Sledovaná liga</td><td class="n num">6</td><td class="n num">2</td><td class="n num pos">+2,32 %</td><td class="num muted">-0,81 % až +6,36 %</td><td class="n num">+13,33 %</td></tr>
+<tr><td><span class="pill ex">Sázková burza</span></td><td>Okrajová liga</td><td class="n num">1</td><td class="n num">0</td><td class="n num pos">+5,53 %</td><td class="num muted">jen 1 sázka</td><td class="n num">-100,00 %</td></tr>
+<tr><td><span class="pill soft">Běžná sázkovka</span></td><td>Sledovaná liga</td><td class="n num">7</td><td class="n num">3</td><td class="n num neg">-1,88 %</td><td class="num muted">-5,42 % až +1,84 %</td><td class="n num">+45,71 %</td></tr>
+<tr><td><span class="pill soft">Běžná sázkovka</span></td><td>Okrajová liga</td><td class="n num">16</td><td class="n num">9</td><td class="n num pos">+3,66 %</td><td class="num muted">+0,17 % až +7,37 %</td><td class="n num">+53,19 %</td></tr>
         </tbody>
       </table>
     </div>
+    <dl class="gloss">
+      <div><dt>Běžná sázkovka</dt><dd>klasická kancelář pro veřejnost (Bet365, Unibet, Fortuna...); reaguje pomaleji, tam hledáme výhodné kurzy.</dd></div>
+      <div><dt>Sázková burza</dt><dd>místo, kde sázíš proti jiným hráčům, ne proti kanceláři (Betfair).</dd></div>
+      <div><dt>Sledovaná liga</dt><dd>velký, hlídaný trh (brazilská Série A) - chyby v kurzech mizí rychle.</dd></div>
+      <div><dt>Okrajová liga</dt><dd>menší soutěž, které kanceláře dávají míň pozor (švédská Superettan) - víc prostoru pro výhodný kurz.</dd></div>
+      <div><dt>CLV (průměr)</dt><dd>průměrně o kolik byl náš kurz lepší než kurz před výkopem; tohle rozhoduje.</dd></div>
+      <div><dt>ROI</dt><dd>kolik bychom na papíře vydělali z vsazeného; u malého počtu sázek je to hlavně náhoda.</dd></div>
+    </dl>
   </section>
 
   <section>
-    <div class="eyebrow">Mantinely</div>
-    <h2 class="serif" style="margin-top:6px">Co drží verdikt při zemi</h2>
+    <div class="eyebrow">Na co si dát pozor</div>
+    <h2 class="serif" style="margin-top:6px">Co drží závěr při zemi</h2>
     <ul class="caveats">
-      <li>„close" = poslední snapshot před výkopem (proxy, ne přesně -5 min).</li>
-      <li>Paper-trading ignoruje slippage a limity/bany knih - potvrzuje <b>existenci</b> edge, ne jeho
-        škálovatelnost.</li>
-      <li>Bootstrap CI bere sázky jako nezávislé, což nejsou (H/D/A téhož zápasu + tatáž sázka u víc
-        knih) - CI je opticky užší, ber verdikt s rezervou.</li>
+      <li>„Kurz před výkopem" je poslední cena, kterou jsme stihli odečíst - ne přesně minutu před začátkem.</li>
+      <li>Papírové sázky nepočítají s tím, že v praxi dostaneš o kousek horší kurz a že sázkovky
+        úspěšné hráče omezují nebo vyhazují - potvrzujeme tím, že výhoda <b>existuje</b>, ne že se dá
+        do nekonečna škálovat.</li>
+      <li>Výpočet rozpětí bere sázky jako nezávislé, což úplně nejsou (víc tipů na tentýž zápas,
+        stejná sázka u víc kanceláří) - rozpětí tak vypadá užší, než ve skutečnosti je. Ber závěr s rezervou.</li>
     </ul>
   </section>
 
   <footer>
-    github.com/radim-tales/value-betting-predictor &middot; The Odds API v4 &middot;
-    stránka se generuje automaticky po každém cronu, nesahat ručně.
+    github.com/radim-tales/value-betting-predictor &middot; kurzy z The Odds API &middot;
+    stránka se generuje sama po každém běhu, needitovat ručně.
   </footer>
 </div>
 </body>

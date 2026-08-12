@@ -3,20 +3,29 @@ from __future__ import annotations
 
 Běží v CI po každém cronu: `python -m vbp.live.report_html docs/index.html`.
 Čísla bere ze stejného summarize() jako textový report, plus rozepisuje kompletní
-deník sázek (kdy nalezeno, na co, jak vsazeno, jak dopadlo). Self-contained.
+deník sázek (kdy zachyceno, na co, jak vsazeno, jak dopadlo). Self-contained.
+
+Sázky, které kvůli starému bugu zůstaly bez výsledku a už se nedopočítají
+(výkop starší než okno scores API), se z reportu vyhazují - viz `_is_dead`.
 """
 import html
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from vbp.metrics import clv as clv_fn
 from .report import summarize
 
-_TIER_CZ = {"liquid": "likvidní", "neglected": "zanedbaná"}
-_BT_CZ = {"soft": "soft", "exchange": "burza", "sharp": "sharp"}
+# league_tier a book_type přeložené do lidské češtiny (výstup grotexity naming panelu)
+_TIER_CZ = {"liquid": "Sledovaná liga", "neglected": "Okrajová liga"}
+_BOOK_CZ = {"soft": "Běžná sázkovka", "exchange": "Sázková burza", "sharp": "Referenční trh"}
+_BOOK_PILL = {"soft": "sázkovka", "exchange": "burza", "sharp": "referenční"}
 _LEAGUE_CZ = {
     "soccer_brazil_campeonato": "Brazílie Série A",
-    "soccer_sweden_superettan": "Superettan",
+    "soccer_sweden_superettan": "Švédsko Superettan",
 }
+
+# Sázka, která zůstala bez výsledku a jejíž výkop je starší než tolik dnů, se už
+# nikdy nedopočítá (scores API vrací jen ~3 dny nazpět). Takové v reportu skrýváme.
+_DEAD_AFTER_DAYS = 4
 
 
 def _pct(x: float) -> str:
@@ -43,6 +52,14 @@ def _tip_label(b: dict) -> str:
     return {"H": b.get("home", "domácí"), "A": b.get("away", "hosté"), "D": "remíza"}[b["outcome"]]
 
 
+def _is_dead(bet: dict, now: datetime) -> bool:
+    """True = čekající sázka, jejíž zápas dávno proběhl a výsledek se už nedopočítá."""
+    if bet["status"] != "pending":
+        return False
+    k = _parse(bet.get("kickoff", ""))
+    return bool(k and k < now - timedelta(days=_DEAD_AFTER_DAYS))
+
+
 def enrich_bets(store) -> list[dict]:
     """Ke každé sázce dolepí stav z linie: čeká / výhra / prohra + CLV + P/L (v jednotkách)."""
     lines = store.load_lines()
@@ -67,18 +84,17 @@ def enrich_bets(store) -> list[dict]:
 def build_context(store, now: datetime | None = None) -> dict:
     now = now or datetime.now(timezone.utc)
     rep = summarize(store)
-    lines = store.load_lines()
-    bets = enrich_bets(store)
+    all_bets = enrich_bets(store)
+    dead = sum(1 for b in all_bets if _is_dead(b, now))
+    bets = [b for b in all_bets if not _is_dead(b, now)]  # deník bez mrtvých sázek
     done = [b for b in bets if b["status"] in ("won", "lost")]
     wins = sum(1 for b in done if b["status"] == "won")
     pnl = sum(b["pnl"] for b in done if b["pnl"] is not None)
-    kicked = sum(1 for v in lines.values()
-                 if (_parse(v.get("kickoff", "")) or now) < now)
     return {
         "generated": now,
-        "total_bets": rep["total_bets"],
-        "settled_bets": rep["settled_bets"],
-        "kicked_off": kicked,
+        "total_bets": len(bets),          # jen živé (bez mrtvých) - ať sedí s deníkem
+        "settled_bets": len(done),
+        "dropped": dead,
         "by": rep["by"],
         "bets": bets,
         "done": len(done),
@@ -90,20 +106,21 @@ def build_context(store, now: datetime | None = None) -> dict:
 
 def _bucket_rows_html(by: dict) -> str:
     if not by:
-        return ('<tr><td colspan="6" class="muted">Zatím žádná settled sázka - '
-                'čekáme na první dohrané zápasy.</td></tr>')
+        return ('<tr><td colspan="7" class="muted">Zatím žádná dohraná sázka - '
+                'čekáme na první odehrané zápasy.</td></tr>')
     out = []
     for (bt, tier), g in sorted(by.items()):
         lo, hi = g["clv_ci"]
         clv_cls = "pos" if g["mean_clv"] > 0 else "neg"
-        ci = f"[{_pct(lo)} ; {_pct(hi)}]" if g["n"] > 1 else "jen 1 sázka"
+        ci = f"{_pct(lo)} až {_pct(hi)}" if g["n"] > 1 else "jen 1 sázka"
         pill = "soft" if bt == "soft" else "ex"
         out.append(
-            f'<tr><td><span class="pill {pill}">{html.escape(_BT_CZ.get(bt, bt))}</span> '
-            f'{html.escape(_TIER_CZ.get(tier, tier))}</td>'
+            f'<tr>'
+            f'<td><span class="pill {pill}">{html.escape(_BOOK_CZ.get(bt, bt))}</span></td>'
+            f'<td>{html.escape(_TIER_CZ.get(tier, tier))}</td>'
             f'<td class="n num">{g["n"]}</td><td class="n num">{g["wins"]}</td>'
             f'<td class="n num {clv_cls}">{_pct(g["mean_clv"])}</td>'
-            f'<td class="num">{ci}</td>'
+            f'<td class="num muted">{ci}</td>'
             f'<td class="n num">{_pct(g["roi"])}</td></tr>')
     return "\n".join(out)
 
@@ -117,7 +134,7 @@ _STATUS = {
 
 def _log_rows_html(bets: list[dict]) -> str:
     if not bets:
-        return '<tr><td colspan="10" class="muted">Zatím žádné sázky.</td></tr>'
+        return '<tr><td colspan="11" class="muted">Zatím žádné sázky.</td></tr>'
     out = []
     for b in bets:
         badge, _ = _STATUS[b["status"]]
@@ -134,7 +151,7 @@ def _log_rows_html(bets: list[dict]) -> str:
             f'<td>{html.escape(b.get("home","?"))} – {html.escape(b.get("away","?"))}</td>'
             f'<td><b>{html.escape(_tip_label(b))}</b></td>'
             f'<td class="n num">{b["price"]:.2f}</td>'
-            f'<td>{html.escape(b["book"])} <span class="pill {pill}">{_BT_CZ.get(b["book_type"],b["book_type"])}</span></td>'
+            f'<td>{html.escape(b["book"])} <span class="pill {pill}">{_BOOK_PILL.get(b["book_type"],b["book_type"])}</span></td>'
             f'<td class="n num">{_pct(b["edge"])}</td>'
             f'<td>{badge}</td>'
             f'<td class="n num {clv_cls}">{clv}</td>'
@@ -145,7 +162,6 @@ def _log_rows_html(bets: list[dict]) -> str:
 
 def render_html(ctx: dict) -> str:
     gen = ctx["generated"].strftime("%d. %m. %Y %H:%M UTC")
-    lost_data = max(0, ctx["kicked_off"] - ctx["settled_bets"])
     record = f'{ctx["wins"]}-{ctx["losses"]}' if ctx["done"] else "-"
     pnl_cls = "pos" if ctx["pnl"] > 0 else ("neg" if ctx["pnl"] < 0 else "")
     pnl_str = _sig(ctx["pnl"]) + " j." if ctx["done"] else "-"
@@ -153,8 +169,7 @@ def render_html(ctx: dict) -> str:
         gen=gen,
         total_bets=ctx["total_bets"],
         settled_bets=ctx["settled_bets"],
-        kicked_off=ctx["kicked_off"],
-        lost_data=lost_data,
+        dropped=ctx["dropped"],
         record=record,
         pnl_str=pnl_str,
         pnl_cls=pnl_cls,
@@ -168,7 +183,7 @@ _TEMPLATE = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Value Betting Predictor - live</title>
+<title>Vyplácí se porovnávat kurzy - živý deník</title>
 <style>
   :root{{
     --bg:#f7f4ee;--panel:#fffdf8;--ink:#2b2620;--ink-soft:#6b6357;
@@ -191,12 +206,12 @@ _TEMPLATE = """<!doctype html>
   .eyebrow{{font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}}
   h1{{font-size:clamp(1.9rem,4.5vw,2.6rem);line-height:1.1;margin:.35em 0 .1em;text-wrap:balance;font-weight:600}}
   h2{{font-size:1.26rem;margin:0 0 .2em;font-weight:600}}
-  .sub{{color:var(--ink-soft);font-size:1.02rem;max-width:62ch}}
+  .sub{{color:var(--ink-soft);font-size:1.02rem;max-width:64ch}}
   header{{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:30px}}
   .stamp{{margin-top:14px;font-size:.82rem;color:var(--ink-soft)}}
   .stamp b{{color:var(--teal)}}
   section{{margin:38px 0}}
-  .lead-in{{color:var(--ink-soft);max-width:66ch;margin:.2em 0 1.3em}}
+  .lead-in{{color:var(--ink-soft);max-width:70ch;margin:.2em 0 1.3em}}
   .tiles{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}}
   .tile{{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:var(--shadow)}}
   .tile .k{{font-size:2.1rem;line-height:1;font-weight:600}}
@@ -221,57 +236,67 @@ _TEMPLATE = """<!doctype html>
   .note{{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--line-strong);
     border-radius:8px;padding:14px 18px;font-size:.9rem;color:var(--ink-soft);margin-top:14px}}
   .note b{{color:var(--ink)}}
+  dl.gloss{{margin:14px 0 0;display:grid;gap:8px;font-size:.88rem}}
+  dl.gloss div{{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}}
+  dl.gloss dt{{font-weight:600;color:var(--ink);min-width:130px}}
+  dl.gloss dd{{margin:0;color:var(--ink-soft);max-width:64ch}}
   ul.caveats{{list-style:none;padding:0;margin:0;display:grid;gap:10px}}
-  ul.caveats li{{padding-left:22px;position:relative;color:var(--ink-soft);font-size:.92rem;max-width:72ch}}
+  ul.caveats li{{padding-left:22px;position:relative;color:var(--ink-soft);font-size:.92rem;max-width:74ch}}
   ul.caveats li::before{{content:"";position:absolute;left:4px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--rust)}}
   footer{{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:.8rem}}
   code{{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:var(--line);padding:1px 6px;border-radius:5px}}
-  .legend{{display:flex;flex-wrap:wrap;gap:16px;margin:14px 0 4px;font-size:.82rem;color:var(--ink-soft)}}
-  .legend span b{{color:var(--ink);font-weight:600}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="eyebrow">Value Betting Predictor &middot; forward paper-trading</div>
-    <h1 class="serif">Line-shopping edge, živý deník</h1>
-    <p class="sub">Systém bere nejlepší cenu napříč knihami, kde překoná fér Pinnacle o&nbsp;≥3&nbsp;%,
-      a paper-tradinguje ji naživo. Tahle stránka se generuje po každém běhu cronu z reálného stavu.</p>
-    <p class="stamp">Aktualizováno: <b>{gen}</b> &middot; automaticky z <code>live_state/</code></p>
+    <div class="eyebrow">Value Betting Predictor &middot; živý test</div>
+    <h1 class="serif">Vyplácí se porovnávat kurzy? Živý deník sázek</h1>
+    <p class="sub">Systém prochází kurzy u víc sázkových kanceláří a vsadí tam, kde je nejlepší
+      kurz aspoň o&nbsp;3&nbsp;% výhodnější, než odpovídá férové pravděpodobnosti (tu bereme z Pinnacle,
+      nejostřejší kanceláře na trhu). Nesází se skutečné peníze - každá sázka je jen na papíře a jen se
+      zaznamenává, jak by dopadla. Stránka se přepisuje sama po každém automatickém běhu.</p>
+    <p class="stamp">Aktualizováno: <b>{gen}</b> &middot; automaticky, po každém běhu</p>
   </header>
 
   <section>
     <div class="eyebrow">Souhrn</div>
     <h2 class="serif" style="margin-top:6px">Kde jsme teď</h2>
-    <p class="lead-in">Sázka vzniká, když výsledek ještě neexistuje (anti-leak = čas). Bilance a P/L
-      jsou jen za dohrané sázky; jednotka = 1× sázka (flat staking). Verdikt padne až u ~100 settled
-      soft sázek.</p>
+    <p class="lead-in">Sázka se zapíše ve chvíli, kdy zápas ještě nezačal - systém nikdy nevidí výsledek
+      dopředu. Bilanci a zisk počítáme jen z už odehraných zápasů. Konečný verdikt bude dávat smysl
+      až u zhruba 100 dohraných sázek u běžných sázkovek.</p>
     <div class="tiles">
-      <div class="tile"><div class="k num">{total_bets}</div><div class="l">sázek nalezeno celkem</div></div>
-      <div class="tile good"><div class="k num">{settled_bets}</div><div class="l">vyhodnoceno (dohráno)</div></div>
-      <div class="tile"><div class="k num">{record}</div><div class="l">bilance výhra-prohra</div></div>
-      <div class="tile"><div class="k num {pnl_cls}">{pnl_str}</div><div class="l">zisk/ztráta (flat 1j.)</div></div>
+      <div class="tile"><div class="k num">{total_bets}</div><div class="l">sázek zapsáno celkem</div></div>
+      <div class="tile good"><div class="k num">{settled_bets}</div><div class="l">už dohráno</div></div>
+      <div class="tile"><div class="k num">{record}</div><div class="l">výher - proher</div></div>
+      <div class="tile"><div class="k num {pnl_cls}">{pnl_str}</div><div class="l">zisk / ztráta v jednotkách</div></div>
     </div>
-    <div class="note">Do 4.&nbsp;8.&nbsp;2026 harness kvůli bugu nesettloval; ~{lost_data} dohraných sázek je
-      z 3denního okna scores API nenávratně pryč. P/L za tak malé n je čirý šum - řídící metrika je CLV, ne zisk.</div>
+    <div class="note"><b>Co znamená „j.":</b> zisk je v jednotkách, kde jedna jednotka = jeden vklad
+      (na každou sázku vsázíme stejně). Kladné číslo = na papíře jsme vydělali tolik vkladů, záporné =
+      tolik jsme prodělali. <b>Pozor:</b> při takhle malém počtu sázek je zisk hlavně náhoda, ne signál -
+      spolehlivější je CLV níže.</div>
+    <div class="note">Kvůli staré chybě systém do 4.&nbsp;8.&nbsp;2026 zápasy nevyhodnocoval, takže dřívější
+      sázky zůstaly bez výsledku a už se nedopočítají (staré výsledky nejsou k dispozici). Takových sázek
+      bylo {dropped} a v deníku je proto nezobrazujeme.</div>
   </section>
 
   <section>
     <div class="eyebrow">Deník</div>
     <h2 class="serif" style="margin-top:6px">Kdy a na co systém vsadil</h2>
-    <p class="lead-in">Všechny nalezené sázky, čekající nahoře, dohrané dole. „Nalezeno" = kdy to systém
-      zachytil, „výkop" = začátek zápasu. Tip je strana, na kterou padla nejlepší cena.</p>
-    <div class="legend">
-      <span><b>Edge</b> = o kolik nejlepší cena překonává fér Pinnacle</span>
-      <span><b>CLV</b> = výnos kurzu vůči zavírací linii</span>
-      <span><b>P/L</b> = zisk v jednotkách (kurz-1 při výhře, -1 při prohře)</span>
-    </div>
+    <p class="lead-in">Všechny sázky - nahoře ty, u kterých se ještě čeká na výsledek, dole dohrané.
+      „Zachyceno" = kdy systém sázku našel, „výkop" = začátek zápasu, „tip" = na koho jsme vsadili.</p>
+    <dl class="gloss">
+      <div><dt>Kurz</dt><dd>nejlepší cena, kterou jsme napříč sázkovkami na daný tip našli.</dd></div>
+      <div><dt>Náskok</dt><dd>o kolik je náš kurz výhodnější, než odpovídá férové pravděpodobnosti z Pinnacle.</dd></div>
+      <div><dt>CLV</dt><dd>jestli byl náš kurz lepší než kurz těsně před výkopem - klíčové číslo, kladné = dobře.</dd></div>
+      <div><dt>Zisk</dt><dd>kolik jsme na sázce vydělali/prodělali v jednotkách (výhra = kurz-1, prohra = -1).</dd></div>
+    </dl>
     <div class="tbl-wrap">
       <table>
         <thead><tr>
-          <th>Nalezeno</th><th>Výkop</th><th>Liga</th><th>Zápas</th><th>Tip</th>
-          <th class="n">Kurz</th><th>Kniha</th><th class="n">Edge</th><th>Stav</th>
-          <th class="n">CLV</th><th class="n">P/L</th>
+          <th>Zachyceno</th><th>Výkop</th><th>Liga</th><th>Zápas</th><th>Tip</th>
+          <th class="n">Kurz</th><th>Kde sázíme</th><th class="n">Náskok</th><th>Stav</th>
+          <th class="n">CLV</th><th class="n">Zisk</th>
         </tr></thead>
         <tbody>
 {log_rows}
@@ -281,36 +306,46 @@ _TEMPLATE = """<!doctype html>
   </section>
 
   <section>
-    <div class="eyebrow">Agregace</div>
-    <h2 class="serif" style="margin-top:6px">CLV podle typu knihy</h2>
-    <p class="lead-in">Verdikt = 90% bootstrap CI soft-knih celé nad nulou. Dokud je n malé, ber to jako
-      sanity check, ne signál.</p>
+    <div class="eyebrow">Přehled</div>
+    <h2 class="serif" style="margin-top:6px">Jak si CLV vede podle místa a ligy</h2>
+    <p class="lead-in">Každá sázka patří do skupiny podle dvou věcí: <b>kde</b> jsme kurz vzali a <b>jak
+      sledovaná</b> je daná liga. Proto jsou tady dva samostatné sloupce. Verdikt padne, až bude celé
+      95% rozpětí CLV u běžných sázkovek nad nulou. Dokud je sázek málo, ber to jen jako kontrolu, ne důkaz.</p>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>Typ &middot; liga</th><th class="n">n</th><th class="n">výhry</th>
-          <th class="n">CLV</th><th>95% CI (CLV)</th><th class="n">ROI</th></tr></thead>
+        <thead><tr><th>Kde sázíme</th><th>Liga</th><th class="n">Sázek</th><th class="n">Výher</th>
+          <th class="n">CLV (průměr)</th><th>Rozpětí CLV (95 %)</th><th class="n">ROI</th></tr></thead>
         <tbody>
 {bucket_rows}
         </tbody>
       </table>
     </div>
+    <dl class="gloss">
+      <div><dt>Běžná sázkovka</dt><dd>klasická kancelář pro veřejnost (Bet365, Unibet, Fortuna...); reaguje pomaleji, tam hledáme výhodné kurzy.</dd></div>
+      <div><dt>Sázková burza</dt><dd>místo, kde sázíš proti jiným hráčům, ne proti kanceláři (Betfair).</dd></div>
+      <div><dt>Sledovaná liga</dt><dd>velký, hlídaný trh (brazilská Série A) - chyby v kurzech mizí rychle.</dd></div>
+      <div><dt>Okrajová liga</dt><dd>menší soutěž, které kanceláře dávají míň pozor (švédská Superettan) - víc prostoru pro výhodný kurz.</dd></div>
+      <div><dt>CLV (průměr)</dt><dd>průměrně o kolik byl náš kurz lepší než kurz před výkopem; tohle rozhoduje.</dd></div>
+      <div><dt>ROI</dt><dd>kolik bychom na papíře vydělali z vsazeného; u malého počtu sázek je to hlavně náhoda.</dd></div>
+    </dl>
   </section>
 
   <section>
-    <div class="eyebrow">Mantinely</div>
-    <h2 class="serif" style="margin-top:6px">Co drží verdikt při zemi</h2>
+    <div class="eyebrow">Na co si dát pozor</div>
+    <h2 class="serif" style="margin-top:6px">Co drží závěr při zemi</h2>
     <ul class="caveats">
-      <li>„close" = poslední snapshot před výkopem (proxy, ne přesně -5 min).</li>
-      <li>Paper-trading ignoruje slippage a limity/bany knih - potvrzuje <b>existenci</b> edge, ne jeho
-        škálovatelnost.</li>
-      <li>Bootstrap CI bere sázky jako nezávislé, což nejsou (H/D/A téhož zápasu + tatáž sázka u víc
-        knih) - CI je opticky užší, ber verdikt s rezervou.</li>
+      <li>„Kurz před výkopem" je poslední cena, kterou jsme stihli odečíst - ne přesně minutu před začátkem.</li>
+      <li>Papírové sázky nepočítají s tím, že v praxi dostaneš o kousek horší kurz a že sázkovky
+        úspěšné hráče omezují nebo vyhazují - potvrzujeme tím, že výhoda <b>existuje</b>, ne že se dá
+        do nekonečna škálovat.</li>
+      <li>Výpočet rozpětí bere sázky jako nezávislé, což úplně nejsou (víc tipů na tentýž zápas,
+        stejná sázka u víc kanceláří) - rozpětí tak vypadá užší, než ve skutečnosti je. Ber závěr s rezervou.</li>
     </ul>
   </section>
 
   <footer>
-    github.com/radim-tales/value-betting-predictor &middot; The Odds API v4 &middot;
-    stránka se generuje automaticky po každém cronu, nesahat ručně.
+    github.com/radim-tales/value-betting-predictor &middot; kurzy z The Odds API &middot;
+    stránka se generuje sama po každém běhu, needitovat ručně.
   </footer>
 </div>
 </body>
@@ -327,7 +362,7 @@ def main():
     ctx = build_context(Store(BETS_FILE, LINES_FILE))
     out.write_text(render_html(ctx), encoding="utf-8")
     print(f"[report_html] wrote {out} ({ctx['settled_bets']}/{ctx['total_bets']} settled, "
-          f"record {ctx['wins']}-{ctx['losses']}, pnl {ctx['pnl']:+.2f})")
+          f"record {ctx['wins']}-{ctx['losses']}, pnl {ctx['pnl']:+.2f}, dropped {ctx['dropped']})")
 
 
 if __name__ == "__main__":

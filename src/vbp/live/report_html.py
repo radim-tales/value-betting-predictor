@@ -224,7 +224,7 @@ def _render_bankroll_section(bets: list[dict]) -> str:
             '    <div class="eyebrow">Bankroll</div>\n'
             '    <h2 class="serif" style="margin-top:6px">Vývoj bankrollu</h2>\n'
             '    <p class="lead-in">Model: start <b>'
-            f'{BANKROLL_START_EUR:.0f} €</b>, flat <b>{STAKE_EUR:.0f} €</b> na sázku.</p>\n'
+            f'{BANKROLL_START_EUR:.0f} €</b>, stejný vklad <b>{STAKE_EUR:.0f} €</b> na každou sázku.</p>\n'
             '    <div class="note">Zatím žádná dohraná sázka - graf se objeví po prvním výsledku.</div>\n'
             '  </section>'
         )
@@ -299,6 +299,7 @@ def _render_bankroll_section(bets: list[dict]) -> str:
     pnl = final - start
     pnl_cls = "pos" if pnl >= 0 else "neg"
     roi = pnl / start * 100 if start else 0.0
+    roi_str = f"{roi:+.1f}".replace(".", ",")
     mid_y = pad_t + ch / 2
     n_bets = len(points) - 1
     wins = sum(1 for p in points if p["status"] == "won")
@@ -307,14 +308,14 @@ def _render_bankroll_section(bets: list[dict]) -> str:
     return f'''  <section id="bankroll">
     <div class="eyebrow">Bankroll</div>
     <h2 class="serif" style="margin-top:6px">Vývoj bankrollu</h2>
-    <p class="lead-in">Modelový průběh jmění: start <b>{start:.0f} €</b>, flat vklad
-      <b>{STAKE_EUR:.0f} €</b> na sázku · {n_bets} dohraných ({wins}–{losses}).
+    <p class="lead-in">Modelový průběh jmění: start <b>{start:.0f} €</b>, stejný vklad
+      <b>{STAKE_EUR:.0f} €</b> na každou sázku · {n_bets} dohraných ({wins}–{losses}).
       Není to reálný účet - jen převod papírových jednotek na peníze.</p>
     <div class="tiles" style="margin-bottom:16px">
       <div class="tile"><div class="k num">{start:.0f} €</div><div class="l">start</div></div>
       <div class="tile"><div class="k num {pnl_cls}">{_eur_abs(final)}</div><div class="l">teď</div></div>
       <div class="tile"><div class="k num {pnl_cls}">{_eur_abs(pnl, signed=True)}</div>
-        <div class="l">P/L ({roi:+.1f} %)</div></div>
+        <div class="l">P/L ({roi_str} %)</div></div>
       <div class="tile"><div class="k num">{_eur_abs(min(banks))}</div><div class="l">minimum</div></div>
       <div class="tile"><div class="k num">{_eur_abs(max(banks))}</div><div class="l">maximum</div></div>
     </div>

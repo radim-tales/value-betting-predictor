@@ -45,6 +45,12 @@ def test_render_html_is_self_contained(tmp_path):
     assert "Alfa" in html and "Beta" in html      # settled bet rendered
     assert "http://" not in html and "https://cdn" not in html  # zadne externi zdroje
     assert "{" not in html.split("<style>")[0]    # zadny nevyplneny format placeholder v tele
+    # CLV vysvetlene jako "naskok u vykopu" + modelovych 10 EUR na sazku
+    assert "Náskok u výkopu" in html
+    assert "closing line value" in html
+    assert "customer lifetime value" in html
+    assert "10 €" in html
+    assert "+13,0 €" in html                      # vyhra @2.3 -> +1.3 j. * 10 EUR
 
 def test_render_html_empty_state(tmp_path):
     # prazdny store nesmi spadnout

@@ -27,6 +27,9 @@ _LEAGUE_CZ = {
 # nikdy nedopočítá (scores API vrací jen ~3 dny nazpět). Takové v reportu skrýváme.
 _DEAD_AFTER_DAYS = 4
 
+# Modelový vklad pro sloupec "kolik by to bylo v penězích".
+STAKE_EUR = 10
+
 
 def _pct(x: float) -> str:
     return f"{x * 100:+.2f} %".replace(".", ",")
@@ -34,6 +37,11 @@ def _pct(x: float) -> str:
 
 def _sig(x: float) -> str:
     return f"{x:+.2f}".replace(".", ",")
+
+
+def _eur(units: float) -> str:
+    """Zisk/ztráta v jednotkách -> eura při STAKE_EUR na sázku."""
+    return f"{units * STAKE_EUR:+.1f} €".replace(".", ",")
 
 
 def _parse(ts: str) -> datetime | None:
@@ -106,7 +114,7 @@ def build_context(store, now: datetime | None = None) -> dict:
 
 def _bucket_rows_html(by: dict) -> str:
     if not by:
-        return ('<tr><td colspan="7" class="muted">Zatím žádná dohraná sázka - '
+        return ('<tr><td colspan="8" class="muted">Zatím žádná dohraná sázka - '
                 'čekáme na první odehrané zápasy.</td></tr>')
     out = []
     for (bt, tier), g in sorted(by.items()):
@@ -114,6 +122,8 @@ def _bucket_rows_html(by: dict) -> str:
         clv_cls = "pos" if g["mean_clv"] > 0 else "neg"
         ci = f"{_pct(lo)} až {_pct(hi)}" if g["n"] > 1 else "jen 1 sázka"
         pill = "soft" if bt == "soft" else "ex"
+        money = g["roi"] * g["n"]                      # profit v jednotkách za skupinu
+        money_cls = "pos" if money > 0 else ("neg" if money < 0 else "")
         out.append(
             f'<tr>'
             f'<td><span class="pill {pill}">{html.escape(_BOOK_CZ.get(bt, bt))}</span></td>'
@@ -121,7 +131,8 @@ def _bucket_rows_html(by: dict) -> str:
             f'<td class="n num">{g["n"]}</td><td class="n num">{g["wins"]}</td>'
             f'<td class="n num {clv_cls}">{_pct(g["mean_clv"])}</td>'
             f'<td class="num muted">{ci}</td>'
-            f'<td class="n num">{_pct(g["roi"])}</td></tr>')
+            f'<td class="n num">{_pct(g["roi"])}</td>'
+            f'<td class="n num {money_cls}">{_eur(money)}</td></tr>')
     return "\n".join(out)
 
 
@@ -134,13 +145,14 @@ _STATUS = {
 
 def _log_rows_html(bets: list[dict]) -> str:
     if not bets:
-        return '<tr><td colspan="11" class="muted">Zatím žádné sázky.</td></tr>'
+        return '<tr><td colspan="12" class="muted">Zatím žádné sázky.</td></tr>'
     out = []
     for b in bets:
         badge, _ = _STATUS[b["status"]]
         clv = _pct(b["clv"]) if b["clv"] is not None else "-"
         clv_cls = "" if b["clv"] is None else ("pos" if b["clv"] > 0 else "neg")
         pnl = _sig(b["pnl"]) if b["pnl"] is not None else "-"
+        eur = _eur(b["pnl"]) if b["pnl"] is not None else "-"
         pnl_cls = "" if b["pnl"] is None else ("pos" if b["pnl"] > 0 else "neg")
         pill = "soft" if b["book_type"] == "soft" else "ex"
         out.append(
@@ -156,6 +168,7 @@ def _log_rows_html(bets: list[dict]) -> str:
             f'<td>{badge}</td>'
             f'<td class="n num {clv_cls}">{clv}</td>'
             f'<td class="n num {pnl_cls}">{pnl}</td>'
+            f'<td class="n num {pnl_cls}">{eur}</td>'
             f'</tr>')
     return "\n".join(out)
 
@@ -165,6 +178,7 @@ def render_html(ctx: dict) -> str:
     record = f'{ctx["wins"]}-{ctx["losses"]}' if ctx["done"] else "-"
     pnl_cls = "pos" if ctx["pnl"] > 0 else ("neg" if ctx["pnl"] < 0 else "")
     pnl_str = _sig(ctx["pnl"]) + " j." if ctx["done"] else "-"
+    eur_str = _eur(ctx["pnl"]) if ctx["done"] else "-"
     return _TEMPLATE.format(
         gen=gen,
         total_bets=ctx["total_bets"],
@@ -173,6 +187,8 @@ def render_html(ctx: dict) -> str:
         record=record,
         pnl_str=pnl_str,
         pnl_cls=pnl_cls,
+        eur_str=eur_str,
+        stake_eur=STAKE_EUR,
         bucket_rows=_bucket_rows_html(ctx["by"]),
         log_rows=_log_rows_html(ctx["bets"]),
     )
@@ -238,7 +254,7 @@ _TEMPLATE = """<!doctype html>
   .note b{{color:var(--ink)}}
   dl.gloss{{margin:14px 0 0;display:grid;gap:8px;font-size:.88rem}}
   dl.gloss div{{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}}
-  dl.gloss dt{{font-weight:600;color:var(--ink);min-width:130px}}
+  dl.gloss dt{{font-weight:600;color:var(--ink);min-width:160px}}
   dl.gloss dd{{margin:0;color:var(--ink-soft);max-width:64ch}}
   ul.caveats{{list-style:none;padding:0;margin:0;display:grid;gap:10px}}
   ul.caveats li{{padding-left:22px;position:relative;color:var(--ink-soft);font-size:.92rem;max-width:74ch}}
@@ -270,11 +286,13 @@ _TEMPLATE = """<!doctype html>
       <div class="tile good"><div class="k num">{settled_bets}</div><div class="l">už dohráno</div></div>
       <div class="tile"><div class="k num">{record}</div><div class="l">výher - proher</div></div>
       <div class="tile"><div class="k num {pnl_cls}">{pnl_str}</div><div class="l">zisk / ztráta v jednotkách</div></div>
+      <div class="tile"><div class="k num {pnl_cls}">{eur_str}</div><div class="l">v penězích při {stake_eur} € na sázku</div></div>
     </div>
     <div class="note"><b>Co znamená „j.":</b> zisk je v jednotkách, kde jedna jednotka = jeden vklad
       (na každou sázku vsázíme stejně). Kladné číslo = na papíře jsme vydělali tolik vkladů, záporné =
-      tolik jsme prodělali. <b>Pozor:</b> při takhle malém počtu sázek je zisk hlavně náhoda, ne signál -
-      spolehlivější je CLV níže.</div>
+      tolik jsme prodělali. Poslední dlaždice to samé přepočítává na peníze, kdybychom na každou sázku
+      vsadili {stake_eur} €. <b>Pozor:</b> při takhle malém počtu sázek je zisk hlavně náhoda, ne signál -
+      spolehlivější je náskok u výkopu níže.</div>
     <div class="note">Kvůli staré chybě systém do 4.&nbsp;8.&nbsp;2026 zápasy nevyhodnocoval, takže dřívější
       sázky zůstaly bez výsledku a už se nedopočítají (staré výsledky nejsou k dispozici). Takových sázek
       bylo {dropped} a v deníku je proto nezobrazujeme.</div>
@@ -287,16 +305,16 @@ _TEMPLATE = """<!doctype html>
       „Zachyceno" = kdy systém sázku našel, „výkop" = začátek zápasu, „tip" = na koho jsme vsadili.</p>
     <dl class="gloss">
       <div><dt>Kurz</dt><dd>nejlepší cena, kterou jsme napříč sázkovkami na daný tip našli.</dd></div>
-      <div><dt>Náskok</dt><dd>o kolik je náš kurz výhodnější, než odpovídá férové pravděpodobnosti z Pinnacle.</dd></div>
-      <div><dt>CLV</dt><dd>jestli byl náš kurz lepší než kurz těsně před výkopem - klíčové číslo, kladné = dobře.</dd></div>
-      <div><dt>Zisk</dt><dd>kolik jsme na sázce vydělali/prodělali v jednotkách (výhra = kurz-1, prohra = -1).</dd></div>
+      <div><dt>Náskok při sázce</dt><dd>o kolik byl náš kurz výhodnější než férová pravděpodobnost z Pinnacle ve chvíli, kdy jsme sázeli.</dd></div>
+      <div><dt>Náskok u výkopu</dt><dd>totéž měřené proti kurzu těsně před výkopem - klíčové číslo, kladné = chytili jsme lepší cenu, než jaká byla nakonec. (Odborně „CLV", closing line value - nemá nic společného s customer lifetime value z marketingu.)</dd></div>
+      <div><dt>Zisk</dt><dd>kolik jsme na sázce vydělali/prodělali; v jednotkách (výhra = kurz-1, prohra = -1) a vedle v penězích při {stake_eur} € na sázku.</dd></div>
     </dl>
     <div class="tbl-wrap">
       <table>
         <thead><tr>
           <th>Zachyceno</th><th>Výkop</th><th>Liga</th><th>Zápas</th><th>Tip</th>
-          <th class="n">Kurz</th><th>Kde sázíme</th><th class="n">Náskok</th><th>Stav</th>
-          <th class="n">CLV</th><th class="n">Zisk</th>
+          <th class="n">Kurz</th><th>Kde sázíme</th><th class="n">Náskok při sázce</th><th>Stav</th>
+          <th class="n">Náskok u výkopu</th><th class="n">Zisk</th><th class="n">Zisk ({stake_eur} €)</th>
         </tr></thead>
         <tbody>
 {log_rows}
@@ -307,14 +325,16 @@ _TEMPLATE = """<!doctype html>
 
   <section>
     <div class="eyebrow">Přehled</div>
-    <h2 class="serif" style="margin-top:6px">Jak si CLV vede podle místa a ligy</h2>
+    <h2 class="serif" style="margin-top:6px">Jak si náskok u výkopu vede podle místa a ligy</h2>
     <p class="lead-in">Každá sázka patří do skupiny podle dvou věcí: <b>kde</b> jsme kurz vzali a <b>jak
       sledovaná</b> je daná liga. Proto jsou tady dva samostatné sloupce. Verdikt padne, až bude celé
-      95% rozpětí CLV u běžných sázkovek nad nulou. Dokud je sázek málo, ber to jen jako kontrolu, ne důkaz.</p>
+      95% rozpětí náskoku u výkopu u běžných sázkovek nad nulou. Dokud je sázek málo, ber to jen jako
+      kontrolu, ne důkaz.</p>
     <div class="tbl-wrap">
       <table>
         <thead><tr><th>Kde sázíme</th><th>Liga</th><th class="n">Sázek</th><th class="n">Výher</th>
-          <th class="n">CLV (průměr)</th><th>Rozpětí CLV (95 %)</th><th class="n">ROI</th></tr></thead>
+          <th class="n">Náskok u výkopu (průměr)</th><th>Rozpětí (95 %)</th><th class="n">ROI</th>
+          <th class="n">Zisk ({stake_eur} €)</th></tr></thead>
         <tbody>
 {bucket_rows}
         </tbody>
@@ -325,8 +345,8 @@ _TEMPLATE = """<!doctype html>
       <div><dt>Sázková burza</dt><dd>místo, kde sázíš proti jiným hráčům, ne proti kanceláři (Betfair).</dd></div>
       <div><dt>Sledovaná liga</dt><dd>velký, hlídaný trh (brazilská Série A) - chyby v kurzech mizí rychle.</dd></div>
       <div><dt>Okrajová liga</dt><dd>menší soutěž, které kanceláře dávají míň pozor (švédská Superettan) - víc prostoru pro výhodný kurz.</dd></div>
-      <div><dt>CLV (průměr)</dt><dd>průměrně o kolik byl náš kurz lepší než kurz před výkopem; tohle rozhoduje.</dd></div>
-      <div><dt>ROI</dt><dd>kolik bychom na papíře vydělali z vsazeného; u malého počtu sázek je to hlavně náhoda.</dd></div>
+      <div><dt>Náskok u výkopu (průměr)</dt><dd>průměrně o kolik byl náš kurz lepší než kurz těsně před výkopem; tohle rozhoduje o verdiktu (odborně CLV).</dd></div>
+      <div><dt>ROI a Zisk ({stake_eur} €)</dt><dd>kolik bychom reálně vydělali z vsazeného (ROI v %, vedle v eurech při {stake_eur} € na sázku). Vysoké číslo tu klidně vznikne z pár šťastných výher na vysoký kurz - proto je u malého počtu sázek spíš náhoda než signál.</dd></div>
     </dl>
   </section>
 

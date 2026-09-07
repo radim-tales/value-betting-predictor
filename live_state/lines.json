@@ -2162,8 +2162,8 @@
    "D": 0.2581026743056824,
    "A": 0.19944731420385337
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "5d3859b4b30d7547d655d77b8b72857e": {
   "league": "soccer_brazil_campeonato",
@@ -2200,8 +2200,8 @@
    "D": 0.2677655255669619,
    "A": 0.45491867883283327
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "cc042e2a992e22d5b7d031a8aee592c3": {
   "league": "soccer_brazil_campeonato",
@@ -2219,8 +2219,8 @@
    "D": 0.21223704990918402,
    "A": 0.11717376411610997
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "680fb82d1e89227777d143deebb6a885": {
   "league": "soccer_brazil_campeonato",
@@ -2257,8 +2257,8 @@
    "D": 0.2870824463439441,
    "A": 0.22609630986025428
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "70e412c6982109730852f119d6bb44a4": {
   "league": "soccer_brazil_campeonato",
@@ -2272,9 +2272,9 @@
    "A": 0.27513331859256274
   },
   "pin_close": {
-   "H": 0.4477870504127615,
-   "D": 0.2849059775197462,
-   "A": 0.2673069720674922
+   "H": 0.4509213116822148,
+   "D": 0.28781153778659,
+   "A": 0.26126715053119526
   },
   "result": null,
   "settled": false
@@ -2424,9 +2424,9 @@
    "A": 0.3781060112545488
   },
   "pin_close": {
-   "H": 0.3481935950268534,
-   "D": 0.26393597853837797,
-   "A": 0.3878704264347687
+   "H": 0.31736747203631027,
+   "D": 0.26872311609545174,
+   "A": 0.413909411868238
   },
   "result": null,
   "settled": false
@@ -2447,8 +2447,8 @@
    "D": 0.29333340815028336,
    "A": 0.34609034395210414
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "df8993bce4fadb5588e87a75d059094b": {
   "league": "soccer_brazil_campeonato",
@@ -2466,8 +2466,8 @@
    "D": 0.2122761092738818,
    "A": 0.6525132292444429
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "c1208387cc11aab2529f15a7a529b909": {
   "league": "soccer_sweden_superettan",
@@ -2633,9 +2633,9 @@
    "A": 0.30467210854487975
   },
   "pin_close": {
-   "H": 0.4175816058866217,
-   "D": 0.27774628556849856,
-   "A": 0.30467210854487975
+   "H": 0.36268292248463174,
+   "D": 0.28159318961720237,
+   "A": 0.35572388789816595
   },
   "result": null,
   "settled": false
@@ -2652,9 +2652,85 @@
    "A": 0.12773602549866697
   },
   "pin_close": {
-   "H": 0.6819734101553633,
-   "D": 0.19029056434596975,
-   "A": 0.12773602549866697
+   "H": 0.6775590538341245,
+   "D": 0.1935951344172972,
+   "A": 0.12884581174857837
+  },
+  "result": null,
+  "settled": false
+ },
+ "b14c566415b573d249a8356f6d2841e7": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Chapecoense",
+  "away": "Internacional",
+  "kickoff": "2026-09-12T20:00:00Z",
+  "pin_open": {
+   "H": 0.28281724920608525,
+   "D": 0.28020040828568926,
+   "A": 0.4369823425082256
+  },
+  "pin_close": {
+   "H": 0.28281724920608525,
+   "D": 0.28020040828568926,
+   "A": 0.4369823425082256
+  },
+  "result": null,
+  "settled": false
+ },
+ "2db69ab3a334742ea537f0453102261c": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Palmeiras",
+  "away": "Sao Paulo",
+  "kickoff": "2026-09-12T21:30:00Z",
+  "pin_open": {
+   "H": 0.5749909078710708,
+   "D": 0.2463700279935802,
+   "A": 0.17863906413534908
+  },
+  "pin_close": {
+   "H": 0.5749909078710708,
+   "D": 0.2463700279935802,
+   "A": 0.17863906413534908
+  },
+  "result": null,
+  "settled": false
+ },
+ "ed32a6ddd37bb45d01a04e18807d0fb2": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Botafogo",
+  "away": "Bragantino-SP",
+  "kickoff": "2026-09-12T23:30:00Z",
+  "pin_open": {
+   "H": 0.3995580942286693,
+   "D": 0.27763641698172564,
+   "A": 0.32280548878960497
+  },
+  "pin_close": {
+   "H": 0.3995580942286693,
+   "D": 0.27763641698172564,
+   "A": 0.32280548878960497
+  },
+  "result": null,
+  "settled": false
+ },
+ "4da32a426b895ab00a00bc9361463044": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Flamengo",
+  "away": "Corinthians",
+  "kickoff": "2026-09-13T20:30:00Z",
+  "pin_open": {
+   "H": 0.6672240083573135,
+   "D": 0.2139115177109889,
+   "A": 0.11886447393169768
+  },
+  "pin_close": {
+   "H": 0.6672240083573135,
+   "D": 0.2139115177109889,
+   "A": 0.11886447393169768
   },
   "result": null,
   "settled": false

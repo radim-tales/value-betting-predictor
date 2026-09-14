@@ -2732,8 +2732,8 @@
    "D": 0.16237002043496543,
    "A": 0.07399690956616155
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "cff260eeb812f92cbd17a8c5b05ca13b": {
   "league": "soccer_sweden_superettan",
@@ -2808,8 +2808,8 @@
    "D": 0.2537336632157686,
    "A": 0.1891024180963824
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "b61633139317123e39b8437d19f22680": {
   "league": "soccer_sweden_superettan",
@@ -2827,8 +2827,8 @@
    "D": 0.18718920976157324,
    "A": 0.15191763069557426
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "2fce4ecfa0f840971a2efc574e4faa9e": {
   "league": "soccer_sweden_superettan",
@@ -2846,8 +2846,8 @@
    "D": 0.26832064404956535,
    "A": 0.34642297404941
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "5fdfbe18e29116267a6743662eb890dc": {
   "league": "soccer_sweden_superettan",

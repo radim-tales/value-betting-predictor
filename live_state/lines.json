@@ -3551,5 +3551,138 @@
   },
   "result": null,
   "settled": false
+ },
+ "b5d1064007ba0e6c7faa5b3658c21354": {
+  "league": "soccer_sweden_superettan",
+  "league_tier": "neglected",
+  "home": "Landskrona BoIS",
+  "away": "Sandvikens IF",
+  "kickoff": "2026-10-10T11:00:00Z",
+  "pin_open": {
+   "H": 0.5213784403848052,
+   "D": 0.24262660371857672,
+   "A": 0.2359949558966181
+  },
+  "pin_close": {
+   "H": 0.5213784403848052,
+   "D": 0.24262660371857672,
+   "A": 0.2359949558966181
+  },
+  "result": null,
+  "settled": false
+ },
+ "4617c3b9cb3c290fe5b7572fe3040d73": {
+  "league": "soccer_sweden_superettan",
+  "league_tier": "neglected",
+  "home": "Östersunds FK",
+  "away": "Varbergs BoIS",
+  "kickoff": "2026-10-10T13:00:00Z",
+  "pin_open": {
+   "H": 0.4414322741442556,
+   "D": 0.2819445352383229,
+   "A": 0.27662319061742136
+  },
+  "pin_close": {
+   "H": 0.4414322741442556,
+   "D": 0.2819445352383229,
+   "A": 0.27662319061742136
+  },
+  "result": null,
+  "settled": false
+ },
+ "fb7aa98326df2c840be041f610554648": {
+  "league": "soccer_sweden_superettan",
+  "league_tier": "neglected",
+  "home": "IK Oddevold",
+  "away": "Nordic United FC",
+  "kickoff": "2026-10-10T15:00:00Z",
+  "pin_open": {
+   "H": 0.46598244726184757,
+   "D": 0.2539920223513013,
+   "A": 0.2800255303868511
+  },
+  "pin_close": {
+   "H": 0.46598244726184757,
+   "D": 0.2539920223513013,
+   "A": 0.2800255303868511
+  },
+  "result": null,
+  "settled": false
+ },
+ "035551909bf9dadf2d1534baa01deaed": {
+  "league": "soccer_sweden_superettan",
+  "league_tier": "neglected",
+  "home": "Norrby IF",
+  "away": "Östers IF",
+  "kickoff": "2026-10-10T15:00:00Z",
+  "pin_open": {
+   "H": 0.4507750145509661,
+   "D": 0.24330815375445727,
+   "A": 0.3059168316945767
+  },
+  "pin_close": {
+   "H": 0.4507750145509661,
+   "D": 0.24330815375445727,
+   "A": 0.3059168316945767
+  },
+  "result": null,
+  "settled": false
+ },
+ "026abefccf01b1037a0f732cb08dd2a3": {
+  "league": "soccer_sweden_superettan",
+  "league_tier": "neglected",
+  "home": "Örebro SK",
+  "away": "Ljungskile SK",
+  "kickoff": "2026-10-11T11:00:00Z",
+  "pin_open": {
+   "H": 0.47416860933981364,
+   "D": 0.24760372159180347,
+   "A": 0.27822766906838287
+  },
+  "pin_close": {
+   "H": 0.47416860933981364,
+   "D": 0.24760372159180347,
+   "A": 0.27822766906838287
+  },
+  "result": null,
+  "settled": false
+ },
+ "fd51deb25ca07335a473c4f892a40039": {
+  "league": "soccer_sweden_superettan",
+  "league_tier": "neglected",
+  "home": "IFK Värnamo",
+  "away": "Falkenbergs FF",
+  "kickoff": "2026-10-11T13:00:00Z",
+  "pin_open": {
+   "H": 0.40224535153586477,
+   "D": 0.2720569374197701,
+   "A": 0.32569771104436507
+  },
+  "pin_close": {
+   "H": 0.40224535153586477,
+   "D": 0.2720569374197701,
+   "A": 0.32569771104436507
+  },
+  "result": null,
+  "settled": false
+ },
+ "5bcd1e479a56a1e6e3d088531d203641": {
+  "league": "soccer_sweden_superettan",
+  "league_tier": "neglected",
+  "home": "IK Brage",
+  "away": "Helsingborgs IF",
+  "kickoff": "2026-10-11T15:00:00Z",
+  "pin_open": {
+   "H": 0.4075293044694784,
+   "D": 0.23739283598527555,
+   "A": 0.35507785954524607
+  },
+  "pin_close": {
+   "H": 0.4075293044694784,
+   "D": 0.23739283598527555,
+   "A": 0.35507785954524607
+  },
+  "result": null,
+  "settled": false
  }
 }

@@ -3697,9 +3697,9 @@
    "A": 0.07856359716417843
   },
   "pin_close": {
-   "H": 0.8114152964199207,
-   "D": 0.11531030601308881,
-   "A": 0.0732743975669905
+   "H": 0.8113792805926828,
+   "D": 0.11528774028905671,
+   "A": 0.07333297911826049
   },
   "result": null,
   "settled": false
@@ -3815,8 +3815,8 @@
    "D": 0.24370249814006648,
    "A": 0.5332185668391914
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "ecb3741459c43916d559df0e74f4f35c": {
   "league": "soccer_brazil_campeonato",
@@ -3891,8 +3891,8 @@
    "D": 0.2613177693755027,
    "A": 0.3901177262303316
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "99e65c6c2c5448c279d8bee744db00be": {
   "league": "soccer_sweden_superettan",
@@ -4118,6 +4118,82 @@
    "H": 0.5224478228156905,
    "D": 0.25121945255698835,
    "A": 0.22633272462732115
+  },
+  "result": null,
+  "settled": false
+ },
+ "8ccb6090c136959fa9cd76853ae202ca": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Botafogo",
+  "away": "Chapecoense",
+  "kickoff": "2026-10-17T21:00:00Z",
+  "pin_open": {
+   "H": 0.7023142312897172,
+   "D": 0.1800562250269576,
+   "A": 0.11762954368332529
+  },
+  "pin_close": {
+   "H": 0.7023142312897172,
+   "D": 0.1800562250269576,
+   "A": 0.11762954368332529
+  },
+  "result": null,
+  "settled": false
+ },
+ "0e1fb1dc3fd0c2731f58346a269ca782": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Atletico Paranaense",
+  "away": "Palmeiras",
+  "kickoff": "2026-10-17T22:30:00Z",
+  "pin_open": {
+   "H": 0.2858717042690999,
+   "D": 0.274658295549885,
+   "A": 0.4394700001810152
+  },
+  "pin_close": {
+   "H": 0.2858717042690999,
+   "D": 0.274658295549885,
+   "A": 0.4394700001810152
+  },
+  "result": null,
+  "settled": false
+ },
+ "b0cb67441f9b711c0c99e5d859bc03f3": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Grêmio",
+  "away": "Cruzeiro",
+  "kickoff": "2026-10-18T19:00:00Z",
+  "pin_open": {
+   "H": 0.3280009035284359,
+   "D": 0.2683554820182405,
+   "A": 0.4036436144533236
+  },
+  "pin_close": {
+   "H": 0.3280009035284359,
+   "D": 0.2683554820182405,
+   "A": 0.4036436144533236
+  },
+  "result": null,
+  "settled": false
+ },
+ "0ba54a3f2f4f5284a6dab23899ec4c54": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Remo",
+  "away": "Bragantino-SP",
+  "kickoff": "2026-10-18T22:30:00Z",
+  "pin_open": {
+   "H": 0.288982118849227,
+   "D": 0.27005655874800033,
+   "A": 0.4409613224027728
+  },
+  "pin_close": {
+   "H": 0.288982118849227,
+   "D": 0.27005655874800033,
+   "A": 0.4409613224027728
   },
   "result": null,
   "settled": false

@@ -4520,5 +4520,43 @@
   },
   "result": null,
   "settled": false
+ },
+ "64b480774e19982122cb9e06658dd623": {
+  "league": "soccer_sweden_superettan",
+  "league_tier": "neglected",
+  "home": "Norrby IF",
+  "away": "IFK Norrkoping",
+  "kickoff": "2026-10-25T12:00:00Z",
+  "pin_open": {
+   "H": 0.2724070062384126,
+   "D": 0.21004150601346916,
+   "A": 0.5175514877481183
+  },
+  "pin_close": {
+   "H": 0.2724070062384126,
+   "D": 0.21004150601346916,
+   "A": 0.5175514877481183
+  },
+  "result": null,
+  "settled": false
+ },
+ "1890564c20db109024daf7095a8b8ee0": {
+  "league": "soccer_sweden_superettan",
+  "league_tier": "neglected",
+  "home": "Örebro SK",
+  "away": "Falkenbergs FF",
+  "kickoff": "2026-10-26T18:05:00Z",
+  "pin_open": {
+   "H": 0.44096737856851737,
+   "D": 0.26424646150138414,
+   "A": 0.2947861599300985
+  },
+  "pin_close": {
+   "H": 0.44096737856851737,
+   "D": 0.26424646150138414,
+   "A": 0.2947861599300985
+  },
+  "result": null,
+  "settled": false
  }
 }

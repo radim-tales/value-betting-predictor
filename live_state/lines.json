@@ -4252,8 +4252,8 @@
    "D": 0.2367825984939796,
    "A": 0.2719775048280035
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "09f8d918d8b1ce81d583980e1113a3b1": {
   "league": "soccer_brazil_campeonato",
@@ -4271,8 +4271,8 @@
    "D": 0.25917996720216646,
    "A": 0.27441080332491546
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "cf4e72a775b8c2452a31d7453155f62b": {
   "league": "soccer_brazil_campeonato",
@@ -4290,8 +4290,8 @@
    "D": 0.28501632513979913,
    "A": 0.2903178985569509
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "c3d62b14f6c1c572a60f9c5cdc2515c7": {
   "league": "soccer_sweden_superettan",
@@ -4309,8 +4309,8 @@
    "D": 0.2208068835525248,
    "A": 0.1407038594564548
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "f13e70f420f852e7ccc9e7c39ba27f70": {
   "league": "soccer_sweden_superettan",
@@ -4347,8 +4347,8 @@
    "D": 0.24015912535360792,
    "A": 0.2724875083073962
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "5c130fa15dc8629095d5ef9753566953": {
   "league": "soccer_brazil_campeonato",
@@ -4366,8 +4366,8 @@
    "D": 0.2596657816779516,
    "A": 0.524821516510987
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "b82abb480091ea5bd4c8c645a137900f": {
   "league": "soccer_brazil_campeonato",
@@ -4385,8 +4385,8 @@
    "D": 0.2272379052871841,
    "A": 0.242104586970766
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "04aa2d005abcb4ec637e3b05fb711e18": {
   "league": "soccer_brazil_campeonato",
@@ -4423,8 +4423,8 @@
    "D": 0.20888668850450912,
    "A": 0.15286152739495865
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "51f2cea4f466d0df8335ff12dab72dd4": {
   "league": "soccer_brazil_campeonato",
@@ -4438,9 +4438,9 @@
    "A": 0.2920397770020651
   },
   "pin_close": {
-   "H": 0.502618004402588,
-   "D": 0.24869099779870604,
-   "A": 0.24869099779870604
+   "H": 0.4409997589790759,
+   "D": 0.2708989276538955,
+   "A": 0.28810131336702854
   },
   "result": null,
   "settled": false
@@ -4457,9 +4457,9 @@
    "A": 0.10656777505504021
   },
   "pin_close": {
-   "H": 0.7359535730177693,
-   "D": 0.16643857013000127,
-   "A": 0.0976078568522294
+   "H": 0.7352667121234551,
+   "D": 0.16694280518648588,
+   "A": 0.09779048269005909
   },
   "result": null,
   "settled": false
@@ -4476,9 +4476,9 @@
    "A": 0.33094947320850854
   },
   "pin_close": {
-   "H": 0.45894448505668217,
-   "D": 0.2631921112547907,
-   "A": 0.2778634036885272
+   "H": 0.4216831381625447,
+   "D": 0.27635566886342544,
+   "A": 0.3019611929740298
   },
   "result": null,
   "settled": false
@@ -4499,8 +4499,8 @@
    "D": 0.28490013237490175,
    "A": 0.35079673661350524
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "ea1d5c807c706a00c35d4c867727d968": {
   "league": "soccer_brazil_campeonato",
@@ -4518,8 +4518,8 @@
    "D": 0.23698923391298696,
    "A": 0.17844295545079192
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "64b480774e19982122cb9e06658dd623": {
   "league": "soccer_sweden_superettan",
@@ -4628,9 +4628,9 @@
    "A": 0.3866684279757322
   },
   "pin_close": {
-   "H": 0.3475417140656226,
-   "D": 0.2657898579586451,
-   "A": 0.3866684279757322
+   "H": 0.34890665560541606,
+   "D": 0.2627564585514247,
+   "A": 0.3883368858431593
   },
   "result": null,
   "settled": false
@@ -4647,9 +4647,123 @@
    "A": 0.20035710974220203
   },
   "pin_close": {
-   "H": 0.5350655467012374,
-   "D": 0.26457734355656065,
-   "A": 0.20035710974220203
+   "H": 0.589902855476579,
+   "D": 0.24479030708874094,
+   "A": 0.1653068374346801
+  },
+  "result": null,
+  "settled": false
+ },
+ "5e9ecdfdcd4d2b30421cda5cf6d1a4b0": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Bragantino-SP",
+  "away": "Chapecoense",
+  "kickoff": "2026-10-28T22:30:00Z",
+  "pin_open": {
+   "H": 0.7574904432244579,
+   "D": 0.15005498536682121,
+   "A": 0.09245457140872093
+  },
+  "pin_close": {
+   "H": 0.7574904432244579,
+   "D": 0.15005498536682121,
+   "A": 0.09245457140872093
+  },
+  "result": null,
+  "settled": false
+ },
+ "91b58f0d500e9701d91414e119ab96cd": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Fluminense",
+  "away": "Internacional",
+  "kickoff": "2026-10-28T22:30:00Z",
+  "pin_open": {
+   "H": 0.504862445696889,
+   "D": 0.2659269486129036,
+   "A": 0.22921060569020735
+  },
+  "pin_close": {
+   "H": 0.504862445696889,
+   "D": 0.2659269486129036,
+   "A": 0.22921060569020735
+  },
+  "result": null,
+  "settled": false
+ },
+ "f9c9c15164aedc3a213ad0100ee9dda2": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Santos",
+  "away": "Palmeiras",
+  "kickoff": "2026-10-28T22:30:00Z",
+  "pin_open": {
+   "H": 0.3477716843147736,
+   "D": 0.2851765946020273,
+   "A": 0.36705172108319906
+  },
+  "pin_close": {
+   "H": 0.3477716843147736,
+   "D": 0.2851765946020273,
+   "A": 0.36705172108319906
+  },
+  "result": null,
+  "settled": false
+ },
+ "8809310558f539256a470a8020b0e247": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Bahia",
+  "away": "Sao Paulo",
+  "kickoff": "2026-10-29T00:30:00Z",
+  "pin_open": {
+   "H": 0.47664761608615624,
+   "D": 0.2643353882484622,
+   "A": 0.25901699566538156
+  },
+  "pin_close": {
+   "H": 0.47664761608615624,
+   "D": 0.2643353882484622,
+   "A": 0.25901699566538156
+  },
+  "result": null,
+  "settled": false
+ },
+ "e3b471ce6669eeb025235678fd3e6a0d": {
+  "league": "soccer_sweden_superettan",
+  "league_tier": "neglected",
+  "home": "IFK Norrkoping",
+  "away": "Östersunds FK",
+  "kickoff": "2026-10-31T12:00:00Z",
+  "pin_open": {
+   "H": 0.5319848451076805,
+   "D": 0.23694326556418818,
+   "A": 0.23107188932813136
+  },
+  "pin_close": {
+   "H": 0.5319848451076805,
+   "D": 0.23694326556418818,
+   "A": 0.23107188932813136
+  },
+  "result": null,
+  "settled": false
+ },
+ "3d8f0065f3f121804773d6ff31b4cdbe": {
+  "league": "soccer_sweden_superettan",
+  "league_tier": "neglected",
+  "home": "Norrby IF",
+  "away": "IFK Värnamo",
+  "kickoff": "2026-10-31T14:00:00Z",
+  "pin_open": {
+   "H": 0.3861138888815318,
+   "D": 0.25708682186658455,
+   "A": 0.35679928925188353
+  },
+  "pin_close": {
+   "H": 0.3861138888815318,
+   "D": 0.25708682186658455,
+   "A": 0.35679928925188353
   },
   "result": null,
   "settled": false

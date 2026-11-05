@@ -4951,9 +4951,9 @@
    "A": 0.07457181286364975
   },
   "pin_close": {
-   "H": 0.7996304263700444,
-   "D": 0.13229060901063888,
-   "A": 0.06807896461931673
+   "H": 0.8025278441848097,
+   "D": 0.13090765175193717,
+   "A": 0.06656450406325302
   },
   "result": null,
   "settled": false
@@ -5012,8 +5012,8 @@
    "D": 0.27833161393859657,
    "A": 0.2921542075462403
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "00471c0b94da413be9689767f2d4a571": {
   "league": "soccer_brazil_campeonato",
@@ -5031,8 +5031,8 @@
    "D": 0.09045960174011906,
    "A": 0.0442021976855914
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "cb4f135234ed7236aca2b93f47ab4739": {
   "league": "soccer_brazil_campeonato",
@@ -5050,8 +5050,8 @@
    "D": 0.26058091228649227,
    "A": 0.47883817542701546
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "6e6ddd0046e27c40f5b67c96cc16d5fd": {
   "league": "soccer_brazil_campeonato",
@@ -5126,8 +5126,8 @@
    "D": 0.22354361592415095,
    "A": 0.15286031325364433
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "362b760b6e3cec6df6d137c1fff18026": {
   "league": "soccer_brazil_campeonato",
@@ -5217,9 +5217,9 @@
    "A": 0.7518164096506448
   },
   "pin_close": {
-   "H": 0.08013829165240018,
-   "D": 0.14679092247154552,
-   "A": 0.7730707858760544
+   "H": 0.07527387906567239,
+   "D": 0.14273929892122506,
+   "A": 0.7819868220131025
   },
   "result": null,
   "settled": false

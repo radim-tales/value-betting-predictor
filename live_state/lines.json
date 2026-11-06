@@ -4955,8 +4955,8 @@
    "D": 0.13155880617427246,
    "A": 0.06803158561742355
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "e766824cd38eb33865f45b707c35467e": {
   "league": "soccer_brazil_campeonato",
@@ -4974,8 +4974,8 @@
    "D": 0.2120907881112188,
    "A": 0.16108677166739402
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "754fd36ffe7b5a7fcd922576da8b0c8a": {
   "league": "soccer_brazil_campeonato",
@@ -5069,8 +5069,8 @@
    "D": 0.3111702027680899,
    "A": 0.32508679865932455
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "c56bfd44039a720ef7bfd7060f0ecb6c": {
   "league": "soccer_sweden_superettan",
@@ -5141,9 +5141,9 @@
    "A": 0.36467824578416386
   },
   "pin_close": {
-   "H": 0.33691157314471465,
-   "D": 0.2865799530840032,
-   "A": 0.3765084737712822
+   "H": 0.3368879310332211,
+   "D": 0.2873929508615746,
+   "A": 0.3757191181052043
   },
   "result": null,
   "settled": false

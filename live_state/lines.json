@@ -4993,8 +4993,8 @@
    "D": 0.230952691906532,
    "A": 0.22366397732917395
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "9c9b60495c9667d04bcdba59483a623f": {
   "league": "soccer_brazil_campeonato",
@@ -5145,8 +5145,8 @@
    "D": 0.30435250322979657,
    "A": 0.4181934622552542
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "d47fe4a0e81beba434bd7bbb59367039": {
   "league": "soccer_sweden_superettan",

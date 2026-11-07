@@ -5261,5 +5261,176 @@
   },
   "result": null,
   "settled": false
+ },
+ "60e79364c168ad0ad22c0cffc02be8a9": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Mirassol",
+  "away": "Atletico Mineiro",
+  "kickoff": "2026-11-14T21:30:00Z",
+  "pin_open": {
+   "H": 0.487212959074542,
+   "D": 0.26185128022620047,
+   "A": 0.2509357606992576
+  },
+  "pin_close": {
+   "H": 0.487212959074542,
+   "D": 0.26185128022620047,
+   "A": 0.2509357606992576
+  },
+  "result": null,
+  "settled": false
+ },
+ "8fafa425728aa8e7d2c23956ba4c2553": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Chapecoense",
+  "away": "Vasco da Gama",
+  "kickoff": "2026-11-14T23:30:00Z",
+  "pin_open": {
+   "H": 0.17353096876148758,
+   "D": 0.21682840057745337,
+   "A": 0.609640630661059
+  },
+  "pin_close": {
+   "H": 0.17353096876148758,
+   "D": 0.21682840057745337,
+   "A": 0.609640630661059
+  },
+  "result": null,
+  "settled": false
+ },
+ "34b8d9b2a641392b592e1dc5470e7622": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Coritiba",
+  "away": "Santos",
+  "kickoff": "2026-11-18T22:30:00Z",
+  "pin_open": {
+   "H": 0.29256698655454216,
+   "D": 0.2592455021259184,
+   "A": 0.4481875113195393
+  },
+  "pin_close": {
+   "H": 0.29256698655454216,
+   "D": 0.2592455021259184,
+   "A": 0.4481875113195393
+  },
+  "result": null,
+  "settled": false
+ },
+ "4ffeab0ae6c6a76e96262104d3a1d6e7": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Flamengo",
+  "away": "Atletico Paranaense",
+  "kickoff": "2026-11-18T23:30:00Z",
+  "pin_open": {
+   "H": 0.7848323196569624,
+   "D": 0.13772691265842132,
+   "A": 0.07744076768461625
+  },
+  "pin_close": {
+   "H": 0.7848323196569624,
+   "D": 0.13772691265842132,
+   "A": 0.07744076768461625
+  },
+  "result": null,
+  "settled": false
+ },
+ "8c090da10644d01073571175eb7a7426": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Cruzeiro",
+  "away": "Palmeiras",
+  "kickoff": "2026-11-18T23:30:00Z",
+  "pin_open": {
+   "H": 0.3433303355583175,
+   "D": 0.27063154278637336,
+   "A": 0.3860381216553092
+  },
+  "pin_close": {
+   "H": 0.3433303355583175,
+   "D": 0.27063154278637336,
+   "A": 0.3860381216553092
+  },
+  "result": null,
+  "settled": false
+ },
+ "4a0ed971930ed1355d19497b2aa72744": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Grêmio",
+  "away": "Bahia",
+  "kickoff": "2026-11-19T00:30:00Z",
+  "pin_open": {
+   "H": 0.41839010909183644,
+   "D": 0.262418170404824,
+   "A": 0.31919172050333955
+  },
+  "pin_close": {
+   "H": 0.41839010909183644,
+   "D": 0.262418170404824,
+   "A": 0.31919172050333955
+  },
+  "result": null,
+  "settled": false
+ },
+ "1c0decf6a961edaef153ea4223ec22ce": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Corinthians",
+  "away": "Botafogo",
+  "kickoff": "2026-11-19T00:30:00Z",
+  "pin_open": {
+   "H": 0.5345708655064394,
+   "D": 0.25131009723763587,
+   "A": 0.2141190372559248
+  },
+  "pin_close": {
+   "H": 0.5345708655064394,
+   "D": 0.25131009723763587,
+   "A": 0.2141190372559248
+  },
+  "result": null,
+  "settled": false
+ },
+ "fa3ad7ccd23c6fe47c3062a2b69d3ddd": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Vitoria",
+  "away": "Bragantino-SP",
+  "kickoff": "2026-11-19T22:30:00Z",
+  "pin_open": {
+   "H": 0.34075357342728335,
+   "D": 0.27799253056942785,
+   "A": 0.38125389600328885
+  },
+  "pin_close": {
+   "H": 0.34075357342728335,
+   "D": 0.27799253056942785,
+   "A": 0.38125389600328885
+  },
+  "result": null,
+  "settled": false
+ },
+ "659d55886f2f0170609b4f02bec960c5": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Sao Paulo",
+  "away": "Fluminense",
+  "kickoff": "2026-11-20T00:30:00Z",
+  "pin_open": {
+   "H": 0.4044618046338891,
+   "D": 0.28861612305622153,
+   "A": 0.3069220723098893
+  },
+  "pin_close": {
+   "H": 0.4044618046338891,
+   "D": 0.28861612305622153,
+   "A": 0.3069220723098893
+  },
+  "result": null,
+  "settled": false
  }
 }

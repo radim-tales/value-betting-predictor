@@ -5088,8 +5088,8 @@
    "D": 0.21742918937402572,
    "A": 0.5441654502381279
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "c2effacac02e06d492f32091a5912430": {
   "league": "soccer_sweden_superettan",
@@ -5107,8 +5107,8 @@
    "D": 0.20804326958028704,
    "A": 0.21812584366317841
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "6df174307762408f41f44f1cd145c542": {
   "league": "soccer_brazil_campeonato",
@@ -5164,8 +5164,8 @@
    "D": 0.2870817617975751,
    "A": 0.3005607435193964
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "d688b91df0a006de66c7837c45105beb": {
   "league": "soccer_sweden_superettan",
@@ -5183,8 +5183,8 @@
    "D": 0.23101707754907116,
    "A": 0.41743284892384225
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "e68de5db3bffa5f5c2ef18a0ca0a118e": {
   "league": "soccer_sweden_superettan",
@@ -5202,8 +5202,8 @@
    "D": 0.204795477840247,
    "A": 0.21518256636232283
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "7c28f1e4077d04fa3583bda3be441ec1": {
   "league": "soccer_sweden_superettan",
@@ -5221,8 +5221,8 @@
    "D": 0.13582380848020148,
    "A": 0.7961352942904326
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "e52722ecfe020e3398db979cc022aa56": {
   "league": "soccer_sweden_superettan",
@@ -5240,8 +5240,8 @@
    "D": 0.2605578180501476,
    "A": 0.3041875256088177
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "30261686dd1ad57fdedf77a79c412796": {
   "league": "soccer_sweden_superettan",
@@ -5259,8 +5259,8 @@
    "D": 0.2710052764209673,
    "A": 0.23299418245169054
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "60e79364c168ad0ad22c0cffc02be8a9": {
   "league": "soccer_brazil_campeonato",
@@ -5274,9 +5274,9 @@
    "A": 0.2509357606992576
   },
   "pin_close": {
-   "H": 0.487212959074542,
-   "D": 0.26185128022620047,
-   "A": 0.2509357606992576
+   "H": 0.48509276128028805,
+   "D": 0.2629427007982421,
+   "A": 0.2519645379214699
   },
   "result": null,
   "settled": false
@@ -5369,9 +5369,9 @@
    "A": 0.31919172050333955
   },
   "pin_close": {
-   "H": 0.41839010909183644,
-   "D": 0.262418170404824,
-   "A": 0.31919172050333955
+   "H": 0.41494269094958713,
+   "D": 0.2611403594950859,
+   "A": 0.32391694955532685
   },
   "result": null,
   "settled": false

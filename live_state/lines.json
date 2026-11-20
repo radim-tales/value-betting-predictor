@@ -5373,8 +5373,8 @@
    "D": 0.2676760658098238,
    "A": 0.34019334223631315
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "1c0decf6a961edaef153ea4223ec22ce": {
   "league": "soccer_brazil_campeonato",
@@ -5392,8 +5392,8 @@
    "D": 0.24690903062709235,
    "A": 0.17847964782939993
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "fa3ad7ccd23c6fe47c3062a2b69d3ddd": {
   "league": "soccer_brazil_campeonato",
@@ -5411,8 +5411,8 @@
    "D": 0.27962174258882944,
    "A": 0.3622381454628227
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "659d55886f2f0170609b4f02bec960c5": {
   "league": "soccer_brazil_campeonato",
@@ -5468,8 +5468,8 @@
    "D": 0.2086994944425092,
    "A": 0.1520135583649848
   },
-  "result": null,
-  "settled": false
+  "result": "H",
+  "settled": true
  },
  "23212a6cd36181243e71e157995fc7e5": {
   "league": "soccer_sweden_superettan",
@@ -5521,9 +5521,9 @@
    "A": 0.3373185906135744
   },
   "pin_close": {
-   "H": 0.24895945095584102,
-   "D": 0.25602277742334195,
-   "A": 0.495017771620817
+   "H": 0.2427718564033171,
+   "D": 0.25366905934550704,
+   "A": 0.5035590842511758
   },
   "result": null,
   "settled": false
@@ -5619,6 +5619,82 @@
    "H": 0.399399735555627,
    "D": 0.27403870982323963,
    "A": 0.3265615546211333
+  },
+  "result": null,
+  "settled": false
+ },
+ "fe93738d5c6aca8b60e7f18e1d685e98": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Fluminense",
+  "away": "Mirassol",
+  "kickoff": "2026-11-22T21:30:00Z",
+  "pin_open": {
+   "H": 0.5939785765669361,
+   "D": 0.22944892951505122,
+   "A": 0.17657249391801277
+  },
+  "pin_close": {
+   "H": 0.5939785765669361,
+   "D": 0.22944892951505122,
+   "A": 0.17657249391801277
+  },
+  "result": null,
+  "settled": false
+ },
+ "08f1d5a366e711c1e29845352bb8137d": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Bragantino-SP",
+  "away": "Vasco da Gama",
+  "kickoff": "2026-11-22T22:30:00Z",
+  "pin_open": {
+   "H": 0.40627641447674867,
+   "D": 0.2683581741100594,
+   "A": 0.3253654114131919
+  },
+  "pin_close": {
+   "H": 0.40627641447674867,
+   "D": 0.2683581741100594,
+   "A": 0.3253654114131919
+  },
+  "result": null,
+  "settled": false
+ },
+ "c1339bf6458b24fdfaa62305a6947a8c": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Internacional",
+  "away": "Vitoria",
+  "kickoff": "2026-11-23T22:30:00Z",
+  "pin_open": {
+   "H": 0.6176787805920896,
+   "D": 0.22400381058364247,
+   "A": 0.15831740882426795
+  },
+  "pin_close": {
+   "H": 0.6176787805920896,
+   "D": 0.22400381058364247,
+   "A": 0.15831740882426795
+  },
+  "result": null,
+  "settled": false
+ },
+ "d0352a1171c0a09774d5854eef621421": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Botafogo",
+  "away": "Sao Paulo",
+  "kickoff": "2026-11-23T23:00:00Z",
+  "pin_open": {
+   "H": 0.4281635806364154,
+   "D": 0.277716045004843,
+   "A": 0.29412037435874155
+  },
+  "pin_close": {
+   "H": 0.4281635806364154,
+   "D": 0.277716045004843,
+   "A": 0.29412037435874155
   },
   "result": null,
   "settled": false

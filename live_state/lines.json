@@ -5616,9 +5616,9 @@
    "A": 0.32289038419926785
   },
   "pin_close": {
-   "H": 0.4096364926686464,
-   "D": 0.27300038040308433,
-   "A": 0.3173631269282694
+   "H": 0.40384835860976076,
+   "D": 0.27256274085497284,
+   "A": 0.3235889005352665
   },
   "result": null,
   "settled": false
@@ -5677,8 +5677,8 @@
    "D": 0.2406376525344688,
    "A": 0.15494535739013343
   },
-  "result": null,
-  "settled": false
+  "result": "A",
+  "settled": true
  },
  "d0352a1171c0a09774d5854eef621421": {
   "league": "soccer_brazil_campeonato",
@@ -5696,8 +5696,8 @@
    "D": 0.287656728229469,
    "A": 0.29954239585225495
   },
-  "result": null,
-  "settled": false
+  "result": "D",
+  "settled": true
  },
  "e82dd6479c7f1bed0043ac1b77fb7a1e": {
   "league": "soccer_sweden_superettan",
@@ -5730,9 +5730,9 @@
    "A": 0.5766412647844055
   },
   "pin_close": {
-   "H": 0.22297239245058934,
-   "D": 0.21082148242329607,
-   "A": 0.5662061251261146
+   "H": 0.23872115689264456,
+   "D": 0.21112077315014077,
+   "A": 0.5501580699572147
   },
   "result": null,
   "settled": false
@@ -5749,9 +5749,9 @@
    "A": 0.5462771541380427
   },
   "pin_close": {
-   "H": 0.27517929194193885,
-   "D": 0.2467572152129589,
-   "A": 0.47806349284510224
+   "H": 0.3069111963337769,
+   "D": 0.2853681624981474,
+   "A": 0.40772064116807566
   },
   "result": null,
   "settled": false
@@ -5790,6 +5790,82 @@
    "H": 0.454406890443272,
    "D": 0.26583809563046246,
    "A": 0.27975501392626567
+  },
+  "result": null,
+  "settled": false
+ },
+ "908ac2d3341c0dd5d86e300affa06f15": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Sao Paulo",
+  "away": "Remo",
+  "kickoff": "2026-11-26T23:00:00Z",
+  "pin_open": {
+   "H": 0.6831142281699565,
+   "D": 0.1932259549045488,
+   "A": 0.12365981692549467
+  },
+  "pin_close": {
+   "H": 0.6831142281699565,
+   "D": 0.1932259549045488,
+   "A": 0.12365981692549467
+  },
+  "result": null,
+  "settled": false
+ },
+ "512dea15976e8443725784cbf8490656": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Botafogo",
+  "away": "Bahia",
+  "kickoff": "2026-11-29T00:00:00Z",
+  "pin_open": {
+   "H": 0.46631822700782366,
+   "D": 0.2516302691442155,
+   "A": 0.28205150384796074
+  },
+  "pin_close": {
+   "H": 0.46631822700782366,
+   "D": 0.2516302691442155,
+   "A": 0.28205150384796074
+  },
+  "result": null,
+  "settled": false
+ },
+ "195e2c2a346ef3e4fd8abf18706fb982": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Vitoria",
+  "away": "Santos",
+  "kickoff": "2026-11-29T19:00:00Z",
+  "pin_open": {
+   "H": 0.3117044355866177,
+   "D": 0.2841763298572919,
+   "A": 0.4041192345560904
+  },
+  "pin_close": {
+   "H": 0.3117044355866177,
+   "D": 0.2841763298572919,
+   "A": 0.4041192345560904
+  },
+  "result": null,
+  "settled": false
+ },
+ "ab6bd8fa92a7a680d328f2a92431b856": {
+  "league": "soccer_brazil_campeonato",
+  "league_tier": "liquid",
+  "home": "Internacional",
+  "away": "Bragantino-SP",
+  "kickoff": "2026-11-29T21:30:00Z",
+  "pin_open": {
+   "H": 0.4899606722211253,
+   "D": 0.2560991883150994,
+   "A": 0.2539401394637753
+  },
+  "pin_close": {
+   "H": 0.4899606722211253,
+   "D": 0.2560991883150994,
+   "A": 0.2539401394637753
   },
   "result": null,
   "settled": false
